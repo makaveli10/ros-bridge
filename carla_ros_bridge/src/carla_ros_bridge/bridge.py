@@ -246,6 +246,14 @@ class CarlaRosBridge(CompatibleNode):
                 self.carla_control_queue.put(CarlaControl.PAUSE)
                 return
 
+    def draw_bounding_boxes(self):
+        for vehicle in self.carla_world.get_actors().filter('vehicle.*'):
+            # draw Box
+            transform = vehicle.get_transform()
+            bounding_box = vehicle.bounding_box
+            bounding_box.location += transform.location
+            self.carla_world.debug.draw_box(bounding_box, transform.rotation, thickness=0.01)
+
     def _synchronous_mode_update(self):
         """
         execution loop for synchronous mode
@@ -261,7 +269,7 @@ class CarlaRosBridge(CompatibleNode):
                         if isinstance(actor, EgoVehicle):
                             self._expected_ego_vehicle_control_command_ids.append(
                                 actor_id)
-
+            self.draw_bounding_boxes()
             self.actor_factory.update_available_objects()
             frame = self.carla_world.tick()
 
@@ -302,6 +310,7 @@ class CarlaRosBridge(CompatibleNode):
                 self.timestamp_last_run = carla_snapshot.timestamp.elapsed_seconds
                 self.update_clock(carla_snapshot.timestamp)
                 self.status_publisher.set_frame(carla_snapshot.frame)
+                self.draw_bounding_boxes()
                 self._update(carla_snapshot.frame,
                              carla_snapshot.timestamp.elapsed_seconds)
 
