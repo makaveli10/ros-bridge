@@ -13,7 +13,7 @@
   <arg name="spawn_point" default=""/><!-- use comma separated format "x,y,z,roll,pitch,yaw" -->
 
   <!-- Map to load on startup (either a predefined CARLA town (e.g. 'Town01'), or a OpenDRIVE map file) -->
-  <arg name="town" default=''/>
+  <arg name="town" default='Town10'/>
 
   <!-- Enable/disable passive mode -->
   <arg name='passive' default=''/>
@@ -40,6 +40,7 @@
     <arg name="spawn_point_ego_vehicle" value="$(arg spawn_point)"/>
     <arg name="spawn_sensors_only" value="false"/>
   </include>
+
 
   <!-- <include file="$(find carla_manual_control)/launch/carla_manual_control.launch">
     <arg name='role_name' value='$(arg role_name)'/>

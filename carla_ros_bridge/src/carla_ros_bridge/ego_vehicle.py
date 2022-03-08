@@ -93,7 +93,7 @@ class EgoVehicle(Vehicle):
             self.get_topic_prefix() + "/enable_autopilot",
             self.enable_autopilot_updated,
             qos_profile=10)
-            
+        
         self.carla_actor.set_autopilot(True)
 
     def get_marker_color(self):

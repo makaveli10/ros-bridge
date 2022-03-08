@@ -269,7 +269,7 @@ class CarlaRosBridge(CompatibleNode):
                         if isinstance(actor, EgoVehicle):
                             self._expected_ego_vehicle_control_command_ids.append(
                                 actor_id)
-            self.draw_bounding_boxes()
+            # self.draw_bounding_boxes()
             self.actor_factory.update_available_objects()
             frame = self.carla_world.tick()
 
@@ -310,7 +310,7 @@ class CarlaRosBridge(CompatibleNode):
                 self.timestamp_last_run = carla_snapshot.timestamp.elapsed_seconds
                 self.update_clock(carla_snapshot.timestamp)
                 self.status_publisher.set_frame(carla_snapshot.frame)
-                self.draw_bounding_boxes()
+                # self.draw_bounding_boxes()
                 self._update(carla_snapshot.frame,
                              carla_snapshot.timestamp.elapsed_seconds)
 
