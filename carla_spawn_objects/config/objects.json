@@ -22,19 +22,50 @@
             "id": "map"
         },
         {
+            "type": "vehicle.audi.a2",
+            "id": "audi1"
+        },
+        {
+            "type": "vehicle.audi.tt",
+            "id": "audi8"
+        },
+        {
+            "type": "vehicle.audi.tt",
+            "id": "audi9"
+        },
+        {
+            "type": "vehicle.dodge.charger_police_2020",
+            "id": "police1"
+        },
+        {
+            "type": "vehicle.dodge.charger_police_2020",
+            "id": "police2"
+        },
+        {
+            "type": "vehicle.mini.cooper_s",
+            "id": "mini1"
+        },
+        {
+            "type": "vehicle.mini.cooper_s",
+            "id": "mini2"
+        },
+        {
+            "type": "walker.pedestrian.0001",
+            "id": "w1"
+        },
+        {
+            "type": "walker.pedestrian.0002",
+            "id": "w2"
+        },
+        {
+            "type": "walker.pedestrian.0003",
+            "id": "w3"
+        },
+        {
             "type": "vehicle.tesla.model3",
             "id": "ego_vehicle",
             "sensors": 
             [
-                {
-                    "type": "sensor.camera.rgb",
-                    "id": "rgb_front",
-                    "spawn_point": {"x": 2.0, "y": 0.0, "z": 2.0, "roll": 0.0, "pitch": 0.0, "yaw": 0.0},
-                    "image_size_x": 800,
-                    "image_size_y": 600,
-                    "fov": 90.0,
-                    "sensor_tick": 0.1
-                },
                 {
                     "type": "sensor.camera.rgb",
                     "id": "rgb_view",
