@@ -34,7 +34,7 @@
 ```bash
  docker run -it -d -p 9090:9090 -p 8080:8080 ros-foxglove 
 ```
-NOTE: Use Chrome browser -> localhost:8080. Use Open Connection -> Rosbridge (ROS1 & ROS2).
+NOTE: Use Chrome browser -> localhost:8080. Use Open Connection -> Rosbridge (ROS1 & ROS2). You can user foxglove_layout.json from this repo.
 
 
 - Create another docker bash terminal, setup environment and run example
@@ -53,7 +53,7 @@ NOTE: Use Chrome browser -> localhost:8080. Use Open Connection -> Rosbridge (RO
  source /opt/carla-ros-bridge/install/setup.bash
  rosrun map_server map_server src/carla_ros_bridge/maps/Town01.yaml
 ```
-NOTE: Please check the map topic in 3D panel to see the map.\
+NOTE: Please check the map topic in 3D panel to see the map.
 
 
 - To run in passive mode where rosbridge won't be ticking but only publishing data
