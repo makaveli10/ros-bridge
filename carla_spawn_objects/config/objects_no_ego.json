@@ -1,0 +1,65 @@
+{   
+    "objects": 
+    [
+        {
+            "type": "sensor.pseudo.traffic_lights",
+            "id": "traffic_lights"
+        },
+        {
+            "type": "sensor.pseudo.objects",
+            "id": "objects"
+        },
+        {
+            "type": "sensor.pseudo.actor_list",
+            "id": "actor_list"
+        },
+        {
+            "type": "sensor.pseudo.markers",
+            "id": "markers"
+        },
+        {
+            "type": "sensor.pseudo.opendrive_map",
+            "id": "map"
+        },
+        {
+            "type": "vehicle.audi.a2",
+            "id": "audi1"
+        },
+        {
+            "type": "vehicle.audi.tt",
+            "id": "audi8"
+        },
+        {
+            "type": "vehicle.audi.tt",
+            "id": "audi9"
+        },
+        {
+            "type": "vehicle.dodge.charger_police_2020",
+            "id": "police1"
+        },
+        {
+            "type": "vehicle.dodge.charger_police_2020",
+            "id": "police2"
+        },
+        {
+            "type": "vehicle.mini.cooper_s",
+            "id": "mini1"
+        },
+        {
+            "type": "vehicle.mini.cooper_s",
+            "id": "mini2"
+        },
+        {
+            "type": "walker.pedestrian.0001",
+            "id": "w1"
+        },
+        {
+            "type": "walker.pedestrian.0002",
+            "id": "w2"
+        },
+        {
+            "type": "walker.pedestrian.0003",
+            "id": "w3"
+        }
+    ]
+}
