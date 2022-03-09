@@ -29,7 +29,8 @@ sudo apt-get install --no-install-recommends -y \
     ros-noetic-pcl-ros \
     ros-noetic-rqt-image-view \
     ros-noetic-rqt-gui-py \
+    ros-noetic-map-server \
     python-is-python3
 
 python3 -m pip install --upgrade pip
-python3 -m pip install -r /carla-ros-bridge/catkin_ws/src/ros-bridge/requirements.txt
+python3 -m pip install -r /opt/carla-ros-bridge/requirements.txt
