@@ -16,7 +16,7 @@ def generate_launch_description():
         ),
         launch.actions.DeclareLaunchArgument(
             name='timeout',
-            default_value='2'
+            default_value='200'
         ),
         launch.actions.DeclareLaunchArgument(
             name='role_name',
@@ -75,15 +75,15 @@ def generate_launch_description():
                 'spawn_point': launch.substitutions.LaunchConfiguration('spawn_point')
             }.items()
         ),
-        launch.actions.IncludeLaunchDescription(
-            launch.launch_description_sources.PythonLaunchDescriptionSource(
-                os.path.join(get_package_share_directory(
-                    'carla_manual_control'), 'carla_manual_control.launch.py')
-            ),
-            launch_arguments={
-                'role_name': launch.substitutions.LaunchConfiguration('role_name')
-            }.items()
-        )
+        # launch.actions.IncludeLaunchDescription(
+        #     launch.launch_description_sources.PythonLaunchDescriptionSource(
+        #         os.path.join(get_package_share_directory(
+        #             'carla_manual_control'), 'carla_manual_control.launch.py')
+        #     ),
+        #     launch_arguments={
+        #         'role_name': launch.substitutions.LaunchConfiguration('role_name')
+        #     }.items()
+        # )
     ])
     return ld
 

@@ -2,6 +2,17 @@
 
 PYTHON_SUFFIX="3"
 
+if [ "$ROS_VERSION" = "2" ]; then
+    ADDITIONAL_PACKAGES="ros-$ROS_DISTRO-rviz2"
+else
+    ADDITIONAL_PACKAGES="ros-$ROS_DISTRO-rviz
+                         ros-$ROS_DISTRO-opencv-apps
+                         ros-$ROS_DISTRO-rospy-message-converter
+                         ros-$ROS_DISTRO-pcl-ros"
+fi
+
+echo ADDITIONAL PACKAGES $ADDITIONAL_PACKAGES
+
 sudo apt update
 sudo apt-get install --no-install-recommends -y \
     python3-pip \
@@ -13,24 +24,19 @@ sudo apt-get install --no-install-recommends -y \
     python3-rosdep \
     python3-wstool \
     python3-opencv \
-    ros-noetic-derived-object-msgs \
-    ros-noetic-rosbridge-suite \
-    ros-noetic-cv-bridge \
-    ros-noetic-ros-numpy \
+    ros-$ROS_DISTRO-derived-object-msgs \
+    ros-$ROS_DISTRO-rosbridge-suite \
+    ros-$ROS_DISTRO-cv-bridge \
     python3-tk \
     wget \
     qt5-default \
-    ros-noetic-ackermann-msgs \
-    ros-noetic-pcl-conversions \
+    ros-$ROS_DISTRO-ackermann-msgs \
+    ros-$ROS_DISTRO-pcl-conversions \
     build-essential \
-    ros-noetic-rviz \
-    ros-noetic-opencv-apps \
-    ros-noetic-rospy-message-converter \
-    ros-noetic-pcl-ros \
-    ros-noetic-rqt-image-view \
-    ros-noetic-rqt-gui-py \
-    ros-noetic-map-server \
-    python-is-python3
+    ros-$ROS_DISTRO-rqt-image-view \
+    ros-$ROS_DISTRO-rqt-gui-py \
+    python-is-python3 \
+    $ADDITIONAL_PACKAGES
 
 python3 -m pip install --upgrade pip
 python3 -m pip install -r /opt/carla-ros-bridge/requirements.txt
