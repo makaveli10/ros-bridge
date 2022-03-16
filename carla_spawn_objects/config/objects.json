@@ -30,10 +30,6 @@
             "id": "audi8"
         },
         {
-            "type": "vehicle.audi.tt",
-            "id": "audi9"
-        },
-        {
             "type": "vehicle.dodge.charger_police_2020",
             "id": "police1"
         },
@@ -56,10 +52,6 @@
         {
             "type": "walker.pedestrian.0002",
             "id": "w2"
-        },
-        {
-            "type": "walker.pedestrian.0003",
-            "id": "w3"
         },
         {
             "type": "vehicle.tesla.model3",

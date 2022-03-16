@@ -10,6 +10,8 @@
   <arg name='host' default='viking.kurg.org'/>
   <arg name='port' default='2000'/>
   <arg name='timeout' default='200'/>
+
+  
   <!-- 
     enable/disable synchronous mode. If enabled ros-bridge waits until
     expected data is received for all sensors
@@ -23,11 +25,20 @@
   <!-- enable/disable the registration of all sensors. If disabled, only sensors
   spawned by the bridge are registered -->
   <arg name='register_all_sensors' default='True'/>
+  <arg name='objects_file' default='objects_no_ego.json'/>
+  <arg name='spawn_point' default=""/>
+  <arg name='role_name' default='ego_vehicle'/>
   <!-- 
     the role name of the vehicles that acts as ego vehicle for this ros bridge instance
     Only the vehicles within this list are controllable from within ROS.
     (the vehicle from CARLA is selected which has the attribute 'role_name' set to this value)
   -->
+
+  <arg name="map_file" default="$(find carla_ros_bridge)/maps/$(arg town).yaml"/>
+
+  <!-- Run the map server -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+
   <arg name='ego_vehicle_role_name' default='["ego", "hero", "ego_vehicle", "hero0", "hero1", "hero2", "hero3", "hero4", "hero5", "hero6", "hero7", "hero8", "hero9"]'/>
       
   <node pkg="carla_ros_bridge" name="carla_ros_bridge" type="bridge.py" output="screen" required="true">
@@ -42,4 +53,11 @@
     <param name="town" value="$(arg town)"/>
     <param name="ego_vehicle_role_name" value="$(arg ego_vehicle_role_name)"/>
   </node>
+
+  <!-- <include file="$(find carla_spawn_objects)/launch/carla_example_ego_vehicle.launch">
+    <arg name="objects_definition_file" value='$(find carla_spawn_objects)/config/$(arg objects_file)'/>
+    <arg name='role_name' value='$(arg role_name)'/>
+    <arg name="spawn_point_ego_vehicle" value="$(arg spawn_point)"/>
+    <arg name="spawn_sensors_only" value="false"/>
+  </include> -->
 </launch>
