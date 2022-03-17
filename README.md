@@ -26,7 +26,7 @@
 
 - Build docker image
 ```bash
- docker build -t ros-foxglove .
+ docker build -t carlafox .
 ```
 
 
@@ -38,7 +38,7 @@
 
 - Start docker container with Foxglove web interface
 ```bash
- docker run -it -d -p 9090:9090 -p 8080:8080 ros-foxglove 
+ docker run -it -d -p 9090:9090 -p 8080:8080 carlafox 
 ```
 NOTE: Use Chrome browser -> localhost:8080. Use Open Connection -> Rosbridge (ROS1 & ROS2). You can user foxglove_layout.json from this repo.
 
@@ -47,17 +47,8 @@ NOTE: Use Chrome browser -> localhost:8080. Use Open Connection -> Rosbridge (RO
 ```bash
  docker exec -it "container_id" bash
  cd /opt/carla-ros-bridge
- source /opt/carla-ros-bridge/install/setup.bash
+ source ./devel/setup.bash
  roslaunch carla_ros_bridge carla_ros_bridge_with_example_ego_vehicle.launch
-```
-
-
-- To see map as an image on 3D panel. Start another docker container terminal instance.
-```bash
- docker exec -it "container_id" bash
- cd /opt/carla-ros-bridge
- source /opt/carla-ros-bridge/install/setup.bash
- rosrun map_server map_server src/carla_ros_bridge/maps/Town01.yaml
 ```
 NOTE: Please check the map topic in 3D panel to see the map.
 
