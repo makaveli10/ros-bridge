@@ -211,8 +211,13 @@ class RgbCamera(Camera):
                                         node=node,
                                         carla_actor=carla_actor,
                                         synchronous_mode=synchronous_mode)
-
+        self.image = None
         self.listen()
+        calibration = numpy.identity(3)
+        calibration[0, 2] = float(self.carla_actor.attributes.get('image_size_x')) / 2.0
+        calibration[1, 2] = float(self.carla_actor.attributes.get('image_size_y')) / 2.0
+        calibration[0, 0] = calibration[1, 1] = float(self.carla_actor.attributes.get('image_size_x')) / (2.0 * numpy.tan(90 * numpy.pi / 360.0))
+        self.carla_actor.calibration = calibration
 
     def get_carla_image_data_array(self, carla_image):
         """
@@ -232,9 +237,15 @@ class RgbCamera(Camera):
             dtype=numpy.uint8, buffer=carla_image.raw_data)
         carla_image_data_array = carla_image_data_array[:, :, :3]
         carla_image_data_array = carla_image_data_array[:, :, ::-1]
+        self.image = carla_image_data_array
         return carla_image_data_array, 'rgb8'
 
-
+    def get_image(self):
+        if self.image is not None:
+            img = numpy.ascontiguousarray(self.image, dtype=numpy.uint8)
+            return img
+        return None
+        
 class DepthCamera(Camera):
 
     """

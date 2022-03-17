@@ -22,6 +22,7 @@ from distutils.version import LooseVersion
 from threading import Thread, Lock, Event
 
 import carla
+import cv2
 
 import ros_compatibility as roscomp
 from ros_compatibility.node import CompatibleNode
@@ -36,6 +37,9 @@ from carla_ros_bridge.world_info import WorldInfo
 from carla_msgs.msg import CarlaControl, CarlaWeatherParameters
 from carla_msgs.srv import SpawnObject, DestroyObject, GetBlueprints
 from rosgraph_msgs.msg import Clock
+from sensor_msgs.msg import Image
+from carla_ros_bridge.bounding_boxes import ClientSideBoundingBoxes
+from carla_ros_bridge.camera import Camera
 
 
 class CarlaRosBridge(CompatibleNode):
@@ -50,6 +54,7 @@ class CarlaRosBridge(CompatibleNode):
     # in synchronous mode, if synchronous_mode_wait_for_vehicle_control_command is True,
     # wait for this time until a next tick is triggered.
     VEHICLE_CONTROL_TIMEOUT = 1.
+    BB_COLOR = (0, 248, 64)
 
     def __init__(self):
         """
@@ -134,6 +139,10 @@ class CarlaRosBridge(CompatibleNode):
                 self.new_subscription(CarlaControl, "/carla/control",
                                       lambda control: self.carla_control_queue.put(control.command),
                                       qos_profile=10, callback_group=self.callback_group)
+            
+            # for bbox image publish
+            self._rgb_cam = None
+            self.camera_image_publisher = None
 
             self.synchronous_mode_update_thread = Thread(
                 target=self._synchronous_mode_update)
@@ -246,13 +255,49 @@ class CarlaRosBridge(CompatibleNode):
                 self.carla_control_queue.put(CarlaControl.PAUSE)
                 return
 
-    def draw_bounding_boxes(self):
-        for vehicle in self.carla_world.get_actors().filter('vehicle.*'):
-            # draw Box
-            transform = vehicle.get_transform()
-            bounding_box = vehicle.bounding_box
-            bounding_box.location += transform.location
-            self.carla_world.debug.draw_box(bounding_box, transform.rotation, thickness=0.01)
+    def get_rgb_cam(self):
+        for k, actor in self.actor_factory.actors.items():
+            if not isinstance(actor, Camera): continue
+            self.camera_image_publisher = self.new_publisher(
+                Image, 
+                f"/carla/ego_vehicle/{actor.carla_actor.attributes.get('role_name')}/bboxes_image",
+                qos_profile=10)
+            self._rgb_cam = actor
+            break
+    
+    def publish_bboxes(self):
+        vehicles = self.carla_world.get_actors().filter('vehicle.*')
+        if self._rgb_cam is None:
+            self.get_rgb_cam()
+            if self._rgb_cam is None: return
+        
+        bounding_boxes = ClientSideBoundingBoxes.get_bounding_boxes(vehicles, self._rgb_cam.carla_actor)
+        img = self._rgb_cam.get_image()
+        if img is None: return
+        for bbox in bounding_boxes:
+            points = [(int(bbox[i, 0]), int(bbox[i, 1])) for i in range(8)]
+            # base
+            cv2.line(img, points[0], points[1], CarlaRosBridge.BB_COLOR, thickness=2)
+            cv2.line(img, points[0], points[1], CarlaRosBridge.BB_COLOR, thickness=2)
+            cv2.line(img, points[1], points[2], CarlaRosBridge.BB_COLOR, thickness=2)
+            cv2.line(img, points[2], points[3], CarlaRosBridge.BB_COLOR, thickness=2)
+            cv2.line(img, points[3], points[0], CarlaRosBridge.BB_COLOR, thickness=2)
+            # top
+            cv2.line(img, points[4], points[5], CarlaRosBridge.BB_COLOR, thickness=2)
+            cv2.line(img, points[5], points[6], CarlaRosBridge.BB_COLOR, thickness=2)
+            cv2.line(img, points[6], points[7], CarlaRosBridge.BB_COLOR, thickness=2)
+            cv2.line(img, points[7], points[4], CarlaRosBridge.BB_COLOR, thickness=2)
+            # base-top
+            cv2.line(img, points[0], points[4], CarlaRosBridge.BB_COLOR, thickness=2)
+            cv2.line(img, points[1], points[5], CarlaRosBridge.BB_COLOR, thickness=2)
+            cv2.line(img, points[2], points[6], CarlaRosBridge.BB_COLOR, thickness=2)
+            cv2.line(img, points[3], points[7], CarlaRosBridge.BB_COLOR, thickness=2)
+        
+        # publish img
+        img_msg = Camera.cv_bridge.cv2_to_imgmsg(img, encoding='rgb8')
+        # the camera data is in respect to the camera's own frame
+        img_msg.header = self._rgb_cam.get_msg_header()
+        self.camera_image_publisher.publish(img_msg)
 
     def _synchronous_mode_update(self):
         """
@@ -269,10 +314,10 @@ class CarlaRosBridge(CompatibleNode):
                         if isinstance(actor, EgoVehicle):
                             self._expected_ego_vehicle_control_command_ids.append(
                                 actor_id)
-            # self.draw_bounding_boxes()
+
             self.actor_factory.update_available_objects()
             frame = self.carla_world.tick()
-
+            
             world_snapshot = self.carla_world.get_snapshot()
 
             self.status_publisher.set_frame(frame)
@@ -280,6 +325,7 @@ class CarlaRosBridge(CompatibleNode):
             self.logdebug("Tick for frame {} returned. Waiting for sensor data...".format(
                 frame))
             self._update(frame, world_snapshot.timestamp.elapsed_seconds)
+            self.publish_bboxes()
             self.logdebug("Waiting for sensor data finished.")
 
             if self.parameters['synchronous_mode_wait_for_vehicle_control_command']:
