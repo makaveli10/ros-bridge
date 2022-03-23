@@ -76,6 +76,7 @@ class Camera(Sensor):
                                                         '/camera_info', qos_profile=10)
         self.camera_image_publisher = node.new_publisher(Image, self.get_topic_prefix() +
                                                          '/' + 'image', qos_profile=10)
+        self.frame = None
 
     def destroy(self):
         super(Camera, self).destroy()
@@ -118,6 +119,7 @@ class Camera(Sensor):
         Function (override) to transform the received carla camera data
         into a ROS image message
         """
+        self.frame = carla_camera_data.frame
         img_msg = self.get_ros_image(carla_camera_data)
 
         cam_info = self._camera_info
@@ -165,6 +167,9 @@ class Camera(Sensor):
         img_msg.header = self.get_msg_header(timestamp=carla_camera_data.timestamp)
 
         return img_msg
+    
+    def get_frame(self):
+        return self.frame
 
     @abstractmethod
     def get_carla_image_data_array(self, carla_camera_data):
