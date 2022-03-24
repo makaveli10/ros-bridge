@@ -21,7 +21,7 @@ class LidarToRGB(object):
     """LIDAR point cloud overlay on RGB images implementation.
     """
     
-    def __init__(self, lidar, rgb_cam, dot_extent=2) -> None:
+    def __init__(self, lidar, dot_extent=2) -> None:
         """
         Constructor
 
@@ -33,12 +33,9 @@ class LidarToRGB(object):
         :type dot_extent: int
         """
         self.lidar = lidar
-        self.rgb = rgb_cam
-        self.image_w = float(self.rgb.carla_actor.attributes.get("image_size_x"))
-        self.image_h = float(self.rgb.carla_actor.attributes.get("image_size_y"))
         self.dot_extent = dot_extent - 1
 
-    def lidar_overlay(self, lidar_data, im_array):
+    def lidar_overlay(self, lidar_data, im_array, rgb_cam, image_w, image_h):
         """Method to project lidar points on RGB camera image.
 
         :param lidar_data: carla lidar measurement object
@@ -70,7 +67,7 @@ class LidarToRGB(object):
         world_points = np.dot(lidar_2_world, local_lidar_points)
 
         # This (4, 4) matrix transforms the points from world to sensor coordinates.
-        world_2_camera = np.array(self.rgb.carla_actor.get_transform().get_inverse_matrix())
+        world_2_camera = np.array(rgb_cam.carla_actor.get_transform().get_inverse_matrix())
 
         # Transform the points from world space to camera space.
         sensor_points = np.dot(world_2_camera, world_points)
@@ -97,7 +94,7 @@ class LidarToRGB(object):
             sensor_points[0]])
 
         # Finally we can use our calibration matrix to do the actual 3D -> 2D.
-        points_2d = np.dot(self.rgb.carla_actor.calibration, point_in_camera_coords)
+        points_2d = np.dot(rgb_cam.carla_actor.calibration, point_in_camera_coords)
 
         # Normalize the x, y values by the 3rd value.
         points_2d = np.array([
@@ -112,8 +109,8 @@ class LidarToRGB(object):
         points_2d = points_2d.T
         intensity = intensity.T
         points_in_canvas_mask = \
-            (points_2d[:, 0] > 0.0) & (points_2d[:, 0] < self.image_w) & \
-            (points_2d[:, 1] > 0.0) & (points_2d[:, 1] < self.image_h) & \
+            (points_2d[:, 0] > 0.0) & (points_2d[:, 0] < image_w) & \
+            (points_2d[:, 1] > 0.0) & (points_2d[:, 1] < image_h) & \
             (points_2d[:, 2] > 0.0)
         points_2d = points_2d[points_in_canvas_mask]
         intensity = intensity[points_in_canvas_mask]
