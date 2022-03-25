@@ -1,7 +1,7 @@
 FROM ros:noetic-ros-base
 
 # install foxglove studio & dependencies
-RUN apt update && apt install -y curl wget git git-lfs debian-keyring debian-archive-keyring apt-transport-https
+RUN apt update && apt install -y curl wget git git-lfs debian-keyring debian-archive-keyring apt-transport-https nginx
 RUN curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash - && \
     apt install nodejs
 
@@ -32,6 +32,8 @@ COPY . /opt/carla-ros-bridge/src
 
 RUN /bin/bash -c 'source /opt/ros/noetic/setup.bash && \
                   catkin_make install'
+
+COPY ./config/default /etc/nginx/sites-enabled
 
 WORKDIR /studio
 
