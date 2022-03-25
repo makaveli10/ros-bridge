@@ -144,12 +144,11 @@ class CarlaRosBridge(CompatibleNode):
             
             # for bbox image publish
             self.rgb_cams = {}
-            self.camera_image_publishers = {}
+            self.boxes_lidar_publishers = {}
             
             # lidar overlay RGB
             self.lidar = None
             self.lidar_to_camera = None
-            self.lidar_to_cam_publishers = {}
 
             self.synchronous_mode_update_thread = Thread(
                 target=self._synchronous_mode_update)
@@ -266,22 +265,15 @@ class CarlaRosBridge(CompatibleNode):
         for _, actor in self.actor_factory.actors.items():
             if not isinstance(actor, RgbCamera): continue
             id_ = actor.get_id()
-            if id_ not in self.camera_image_publishers.keys():
+            if id_ not in self.boxes_lidar_publishers.keys():
                 cam_img_publisher = self.new_publisher(
                     Image, 
-                    actor.get_topic_prefix() + '/' + 'bboxes_image',
+                    actor.get_topic_prefix() + '/' + 'bboxes_lidar',
                     qos_profile=10)
-                self.camera_image_publishers[id_] = cam_img_publisher
+                self.boxes_lidar_publishers[id_] = cam_img_publisher
             
             if actor.get_id() not in self.rgb_cams.keys():
                 self.rgb_cams[id_] = actor
-
-            if id_ not in self.lidar_to_cam_publishers.keys():
-                lidar_to_cam_publisher = self.new_publisher(
-                    Image, 
-                    actor.get_topic_prefix() + '/' + 'lidar_overlay',
-                    qos_profile=10)
-                self.lidar_to_cam_publishers[id_] = lidar_to_cam_publisher
         
         for _, actor in self.actor_factory.actors.items():
             if not isinstance(actor, Lidar): continue
@@ -310,7 +302,6 @@ class CarlaRosBridge(CompatibleNode):
             img = rgb_cam.get_image()
             frame = rgb_cam.get_frame()
             if img is None: continue
-            img_copy = img.copy()
 
             # draw bounding boxes
             for bbox in bounding_boxes:
@@ -334,14 +325,13 @@ class CarlaRosBridge(CompatibleNode):
 
             # lidar points
             lidar_data = self.lidar.get_lidar_data()
-            img_lidar = None
             if self.lidar_to_camera is not None:
                 if lidar_data is not None:
                     if lidar_data.frame == frame:
                         # draw
                         image_w = float(rgb_cam.carla_actor.attributes.get("image_size_x"))
                         image_h = float(rgb_cam.carla_actor.attributes.get("image_size_y"))
-                        img_lidar = self.lidar_to_camera.lidar_overlay(lidar_data, img_copy, rgb_cam, image_w, image_h)
+                        img = self.lidar_to_camera.lidar_overlay(lidar_data, img, rgb_cam, image_w, image_h)
                     else:
                         self.logwarn(f"Lidar overlay.. RGB {rgb_cam.get_topic_prefix()} and lidar not in sync.")
                 else:
@@ -353,15 +343,9 @@ class CarlaRosBridge(CompatibleNode):
             header = rgb_cam.get_msg_header()
 
             # publish bboxes
-            img_msg_bboxes = Camera.cv_bridge.cv2_to_imgmsg(img, encoding='rgb8')
-            img_msg_bboxes.header = header
-            self.camera_image_publishers[id_].publish(img_msg_bboxes)
-
-            # publish lidar
-            if img_lidar is not None:
-                img_msg_lidar = Camera.cv_bridge.cv2_to_imgmsg(img_lidar, encoding='rgb8')
-                img_msg_lidar.header = header
-                self.lidar_to_cam_publishers[id_].publish(img_msg_lidar)
+            img_msg_bboxes_lidar = Camera.cv_bridge.cv2_to_imgmsg(img, encoding='rgb8')
+            img_msg_bboxes_lidar.header = header
+            self.boxes_lidar_publishers[id_].publish(img_msg_bboxes_lidar)
 
     def _synchronous_mode_update(self):
         """
