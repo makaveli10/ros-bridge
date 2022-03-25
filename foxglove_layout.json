@@ -4,10 +4,18 @@
     "first": "3D Panel!1bil7pj",
     "second": {
       "first": {
-        "first": "ImageViewPanel!2kotn3g",
-        "second": "ImageViewPanel!45i5bx9",
+        "first": {
+          "first": "ImageViewPanel!30aw4bb",
+          "second": "ImageViewPanel!2i8j4go",
+          "direction": "row"
+        },
+        "second": {
+          "first": "ImageViewPanel!45i5bx9",
+          "second": "ImageViewPanel!byscot",
+          "direction": "column"
+        },
         "direction": "column",
-        "splitPercentage": 72.98657718120806
+        "splitPercentage": 51.98170731707318
       },
       "second": {
         "first": "Plot!h9hho0",
@@ -16,9 +24,9 @@
         "splitPercentage": 52.32646363555127
       },
       "direction": "column",
-      "splitPercentage": 65.44190665342602
+      "splitPercentage": 75.51020408163265
     },
-    "splitPercentage": 63.50989834135902
+    "splitPercentage": 49.6398891966759
   },
   "globalVariables": {},
   "userNodes": {},
@@ -35,28 +43,17 @@
       "autoTextBackgroundColor": true,
       "cameraState": {
         "targetOffset": [
-          -34.28294970016246,
-          4.125573988518544,
+          9.134954645520542,
+          52.45580135181852,
           0
         ],
-        "distance": 239.0710131275454,
+        "distance": 305.21229606022933,
         "perspective": true,
         "phi": 0.7853981633974483,
         "thetaOffset": 0,
         "fovy": 0.7853981633974483,
         "near": 0.01,
-        "far": 5000,
-        "target": [
-          0,
-          0,
-          0
-        ],
-        "targetOrientation": [
-          0,
-          0,
-          0,
-          1
-        ]
+        "far": 5000
       },
       "checkedKeys": [
         "t:/lidar_ray_cast",
@@ -64,9 +61,9 @@
         "t:/map",
         "t:/tf",
         "name:Topics",
-        "t:/carla/ego_vehicle/lidar",
         "ns:/carla/markers/static:TrafficLight",
-        "t:/carla/markers"
+        "t:/carla/markers",
+        "t:/carla/ego_vehicle/lidar"
       ],
       "clickToPublishPoseTopic": "/move_base_simple/goal",
       "clickToPublishPointTopic": "/clicked_point",
@@ -82,7 +79,7 @@
         "t:/carla/markers/static"
       ],
       "followMode": "follow-orientation",
-      "followTf": "map",
+      "followTf": "ego_vehicle/lidar",
       "modifiedNamespaceTopics": [
         "/carla/markers/static",
         "/tf"
@@ -91,8 +88,8 @@
       "settingsByKey": {},
       "useThemeBackgroundColor": true
     },
-    "ImageViewPanel!2kotn3g": {
-      "cameraTopic": "/carla/ego_vehicle/rgb_view/image",
+    "ImageViewPanel!30aw4bb": {
+      "cameraTopic": "/carla/ego_vehicle/rgb_view/bboxes_lidar",
       "enabledMarkerTopics": [],
       "customMarkerTopicOptions": [
         "/lidar_ray_cast",
@@ -109,13 +106,61 @@
         33.25
       ],
       "pan": {
-        "x": -0.8252852353284936,
-        "y": 3.683521117070864
+        "x": -4.770079672861925,
+        "y": 15.47946942596198
+      },
+      "rotation": 0,
+      "zoom": 0.8517353858982668
+    },
+    "ImageViewPanel!2i8j4go": {
+      "cameraTopic": "/carla/ego_vehicle/rgb_front/bboxes_lidar",
+      "enabledMarkerTopics": [],
+      "customMarkerTopicOptions": [
+        "/lidar_ray_cast",
+        "/carla_map",
+        "/carla/ego_vehicle/lidar"
+      ],
+      "scale": 0.5,
+      "transformMarkers": true,
+      "synchronize": false,
+      "mode": "fit",
+      "zoomPercentage": 72.1875,
+      "offset": [
+        0,
+        33.25
+      ],
+      "pan": {
+        "x": -4.770079672861925,
+        "y": 15.47946942596198
       },
       "rotation": 0,
       "zoom": 0.8517353858982668
     },
     "ImageViewPanel!45i5bx9": {
+      "cameraTopic": "/carla/ego_vehicle/depth_front/image",
+      "enabledMarkerTopics": [],
+      "customMarkerTopicOptions": [
+        "/lidar_ray_cast",
+        "/carla_map",
+        "/carla/ego_vehicle/lidar"
+      ],
+      "scale": 0.5,
+      "transformMarkers": true,
+      "synchronize": false,
+      "mode": "fit",
+      "zoomPercentage": 72.1875,
+      "offset": [
+        0,
+        33.25
+      ],
+      "pan": {
+        "x": 0.17471476467150637,
+        "y": 3.683521117070864
+      },
+      "rotation": 0,
+      "zoom": 0.8517353858982668
+    },
+    "ImageViewPanel!byscot": {
       "cameraTopic": "/carla/ego_vehicle/semantic_segmentation_front/image",
       "enabledMarkerTopics": [],
       "customMarkerTopicOptions": [
