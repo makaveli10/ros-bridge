@@ -24,9 +24,9 @@
         "splitPercentage": 52.32646363555127
       },
       "direction": "column",
-      "splitPercentage": 75.51020408163265
+      "splitPercentage": 79.04667328699107
     },
-    "splitPercentage": 49.6398891966759
+    "splitPercentage": 50.88282504012841
   },
   "globalVariables": {},
   "userNodes": {},
@@ -43,11 +43,11 @@
       "autoTextBackgroundColor": true,
       "cameraState": {
         "targetOffset": [
-          9.134954645520542,
-          52.45580135181852,
+          68.69806145561431,
+          21.732549464826267,
           0
         ],
-        "distance": 305.21229606022933,
+        "distance": 184.16512118192486,
         "perspective": true,
         "phi": 0.7853981633974483,
         "thetaOffset": 0,
@@ -57,13 +57,13 @@
       },
       "checkedKeys": [
         "t:/lidar_ray_cast",
-        "t:/carla/markers/static",
-        "t:/map",
         "t:/tf",
         "name:Topics",
-        "ns:/carla/markers/static:TrafficLight",
-        "t:/carla/markers",
-        "t:/carla/ego_vehicle/lidar"
+        "t:/carla/ego_vehicle/lidar",
+        "t:/carla/ego_vehicle/ego_path",
+        "t:/map",
+        "t:/carla/markers/static",
+        "t:/carla/markers"
       ],
       "clickToPublishPoseTopic": "/move_base_simple/goal",
       "clickToPublishPointTopic": "/clicked_point",
@@ -75,11 +75,11 @@
       "diffModeEnabled": true,
       "expandedKeys": [
         "t:/tf",
-        "name:Topics",
-        "t:/carla/markers/static"
+        "t:/carla/markers/static",
+        "name:Topics"
       ],
       "followMode": "follow-orientation",
-      "followTf": "ego_vehicle/lidar",
+      "followTf": "map",
       "modifiedNamespaceTopics": [
         "/carla/markers/static",
         "/tf"
