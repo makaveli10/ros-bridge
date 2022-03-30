@@ -13,6 +13,9 @@ import math
 import os
 
 import numpy
+import carla
+
+import carla_common.transforms as trans
 from carla import VehicleControl
 
 from ros_compatibility.qos import QoSProfile, DurabilityPolicy
@@ -27,6 +30,8 @@ from carla_msgs.msg import (
 )
 from std_msgs.msg import Bool  # pylint: disable=import-error
 from std_msgs.msg import ColorRGBA  # pylint: disable=import-error
+from geometry_msgs.msg import PoseStamped
+from nav_msgs.msg import Path
 
 
 class EgoVehicle(Vehicle):
@@ -34,6 +39,8 @@ class EgoVehicle(Vehicle):
     """
     Vehicle implementation details for the ego vehicle
     """
+
+    WAYPOINT_DISTANCE = 2.0
 
     def __init__(self, uid, name, parent, node, carla_actor, vehicle_control_applied_callback):
         """
@@ -96,6 +103,34 @@ class EgoVehicle(Vehicle):
         
         self.carla_actor.set_autopilot(True)
 
+        # waypoint stuff
+        self.map = self.node.carla_world.get_map()
+        self.waypoint_publisher = node.new_publisher(
+            Path,
+            self.get_topic_prefix() + "/ego_path",
+            QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
+        
+        # TODO: make this a queue to have limited waypoints
+        self.current_route = []
+    
+    def update_ego_route(self, frame, timestamp):
+        """
+        Find ego vehicle current location and update route.
+        """
+        current_location = self.carla_actor.get_location()
+        if len(self.current_route) == 0:
+            self.current_route.append(self.map.get_waypoint(current_location))
+        else:
+            # calculate distance between the last added waypoint and current location
+            last_location = self.current_route[-1].transform.location
+            dx = current_location.x - last_location.x
+            dy = current_location.y - last_location.y
+            distance = math.sqrt(dx * dx + dy * dy)
+            # self.node.loginfo(f"distance = {distance}") # debug
+            if distance > self.WAYPOINT_DISTANCE:
+                self.current_route.append(self.map.get_waypoint(current_location))
+        self.publish_waypoints(frame, timestamp)
+        
     def get_marker_color(self):
         """
         Function (override) to return the color for marker messages.
@@ -178,6 +213,21 @@ class EgoVehicle(Vehicle):
             vehicle_info.center_of_mass.z = vehicle_physics.center_of_mass.z
 
             self.vehicle_info_publisher.publish(vehicle_info)
+    
+    def publish_waypoints(self, frame, timestamp):
+        """
+        Publish the ROS message containing the waypoints ego vehicle followed.
+        """
+        msg = Path()
+        msg.header = self.get_msg_header("map", timestamp=timestamp)
+        if self.current_route is not None:
+            for wp in self.current_route:
+                pose = PoseStamped()
+                pose.pose = trans.carla_transform_to_ros_pose(wp.transform)
+                msg.poses.append(pose)
+
+        self.waypoint_publisher.publish(msg)
+        self.node.loginfo("Published {} waypoints.".format(len(msg.poses)))
 
     def update(self, frame, timestamp):
         """
@@ -188,6 +238,7 @@ class EgoVehicle(Vehicle):
         :return:
         """
         self.send_vehicle_msgs(frame, timestamp)
+        self.update_ego_route(frame, timestamp)
         super(EgoVehicle, self).update(frame, timestamp)
 
     def destroy(self):
