@@ -13,6 +13,8 @@ import math
 import os
 
 import numpy
+from collections import deque
+
 import carla
 
 import carla_common.transforms as trans
@@ -111,7 +113,7 @@ class EgoVehicle(Vehicle):
             QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
         
         # TODO: make this a queue to have limited waypoints
-        self.current_route = []
+        self.current_route = deque(maxlen=150)
     
     def update_ego_route(self, frame, timestamp):
         """
