@@ -1,17 +1,20 @@
 <!-- -->
 <launch>
+  <!-- <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" > 
+     <arg name="port" value="9090"/>
+  </include> -->
   <!-- CARLA connection -->
   <arg name='host' default='localhost'/>
   <arg name='port' default='2000'/>
-  <arg name='timeout' default='10'/>
-
+  <arg name='timeout' default='200'/>
   <!-- Ego vehicle -->
   <arg name='role_name' default='ego_vehicle'/>
   <arg name="vehicle_filter" default='vehicle.*'/>
   <arg name="spawn_point" default=""/><!-- use comma separated format "x,y,z,roll,pitch,yaw" -->
+  <arg name='objects_file' default='objects.json'/>
 
   <!-- Map to load on startup (either a predefined CARLA town (e.g. 'Town01'), or a OpenDRIVE map file) -->
-  <arg name="town" default=''/>
+  <arg name="town" default='Town10HD'/>
 
   <!-- Enable/disable passive mode -->
   <arg name='passive' default=''/>
@@ -19,7 +22,6 @@
   <!-- Synchronous mode-->
   <arg name='synchronous_mode_wait_for_vehicle_control_command' default='False'/>
   <arg name='fixed_delta_seconds' default='0.05'/>
-
 
   <include file="$(find carla_ros_bridge)/launch/carla_ros_bridge.launch">
     <arg name='host' value='$(arg host)'/>
@@ -29,18 +31,16 @@
     <arg name='passive' value='$(arg passive)'/>
     <arg name='synchronous_mode_wait_for_vehicle_control_command' value='$(arg synchronous_mode_wait_for_vehicle_control_command)'/>
     <arg name='fixed_delta_seconds' value='$(arg fixed_delta_seconds)'/>
+    <arg name='spawn_point' value='$(arg spawn_point)'/>
+    <arg name='role_name' value='$(arg role_name)'/>
+    <arg name='objects_file' value='$(arg objects_file)'/>
   </include>
 
   <!-- the ego vehicle, that will be controlled by an agent (e.g. carla_ad_agent) -->
-  <include file="$(find carla_spawn_objects)/launch/carla_example_ego_vehicle.launch">
-    <arg name="objects_definition_file" value='$(find carla_spawn_objects)/config/objects.json'/>
-    <arg name='role_name' value='$(arg role_name)'/>
-    <arg name="spawn_point_ego_vehicle" value="$(arg spawn_point)"/>
-    <arg name="spawn_sensors_only" value="false"/>
-  </include>
 
-  <include file="$(find carla_manual_control)/launch/carla_manual_control.launch">
+
+  <!-- <include file="$(find carla_manual_control)/launch/carla_manual_control.launch">
     <arg name='role_name' value='$(arg role_name)'/>
-  </include>
+  </include> -->
 
 </launch>

@@ -1,47 +1,36 @@
 #!/usr/bin/env bash
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PYTHON_SUFFIX=""
-if [ "$ROS_PYTHON_VERSION" = "3" ]; then
-    PYTHON_SUFFIX=3
-fi
-
-if [ "$ROS_VERSION" = "2" ]; then
-    ADDITIONAL_PACKAGES="ros-$ROS_DISTRO-rviz2"
-else
-    ADDITIONAL_PACKAGES="ros-$ROS_DISTRO-rviz
-                         ros-$ROS_DISTRO-opencv-apps
-                         ros-$ROS_DISTRO-rospy-message-converter
-                         ros-$ROS_DISTRO-pcl-ros"
-fi
-
-if [ "$(lsb_release -sc)" = "focal" ]; then
-    ADDITIONAL_PACKAGES="$ADDITIONAL_PACKAGES
-                         python-is-python3"
-fi
-
-echo ADDITIONAL PACKAGES $ADDITIONAL_PACKAGES
+PYTHON_SUFFIX="3"
 
 sudo apt update
 sudo apt-get install --no-install-recommends -y \
-    python$PYTHON_SUFFIX-pip \
-    python$PYTHON_SUFFIX-osrf-pycommon \
-    python$PYTHON_SUFFIX-catkin-tools \
-    python$PYTHON_SUFFIX-catkin-pkg \
-    python$PYTHON_SUFFIX-catkin-pkg-modules \
-    python$PYTHON_SUFFIX-rosdep \
-    python$PYTHON_SUFFIX-wstool \
-    python$PYTHON_SUFFIX-opencv \
-    ros-$ROS_DISTRO-ackermann-msgs \
-    ros-$ROS_DISTRO-derived-object-msgs \
-    ros-$ROS_DISTRO-cv-bridge \
-    ros-$ROS_DISTRO-vision-opencv \
-    ros-$ROS_DISTRO-rqt-image-view \
-    ros-$ROS_DISTRO-rqt-gui-py \
+    python3-pip \
+    python3-rosinstall \
+    python3-osrf-pycommon \
+    python3-catkin-tools \
+    python3-catkin-pkg \
+    python3-catkin-pkg-modules \
+    python3-rosdep \
+    python3-wstool \
+    python3-opencv \
+    ros-noetic-derived-object-msgs \
+    ros-noetic-rosbridge-suite \
+    ros-noetic-cv-bridge \
+    ros-noetic-ros-numpy \
+    python3-tk \
     wget \
     qt5-default \
-    ros-$ROS_DISTRO-pcl-conversions \
-    $ADDITIONAL_PACKAGES
+    ros-noetic-ackermann-msgs \
+    ros-noetic-pcl-conversions \
+    build-essential \
+    ros-noetic-rviz \
+    ros-noetic-opencv-apps \
+    ros-noetic-rospy-message-converter \
+    ros-noetic-pcl-ros \
+    ros-noetic-rqt-image-view \
+    ros-noetic-rqt-gui-py \
+    ros-noetic-map-server \
+    python-is-python3
 
-pip$PYTHON_SUFFIX install --upgrade pip$PYTHON_SUFFIX
-pip$PYTHON_SUFFIX install -r $SCRIPT_DIR/requirements.txt
+python3 -m pip install --upgrade pip
+python3 -m pip install -r /opt/carla-ros-bridge/requirements.txt

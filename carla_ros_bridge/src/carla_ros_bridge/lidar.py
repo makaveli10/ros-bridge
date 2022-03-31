@@ -54,6 +54,7 @@ class Lidar(Sensor):
         self.lidar_publisher = node.new_publisher(PointCloud2,
                                                   self.get_topic_prefix(),
                                                   qos_profile=10)
+        self.lidar_data = None
         self.listen()
 
     def destroy(self):
@@ -75,7 +76,7 @@ class Lidar(Sensor):
             PointField(name='z', offset=8, datatype=PointField.FLOAT32, count=1),
             PointField(name='intensity', offset=12, datatype=PointField.FLOAT32, count=1)
         ]
-
+        self.lidar_data = carla_lidar_measurement
         lidar_data = numpy.fromstring(
             bytes(carla_lidar_measurement.raw_data), dtype=numpy.float32)
         lidar_data = numpy.reshape(
@@ -85,6 +86,9 @@ class Lidar(Sensor):
         lidar_data[:, 1] *= -1
         point_cloud_msg = create_cloud(header, fields, lidar_data)
         self.lidar_publisher.publish(point_cloud_msg)
+    
+    def get_lidar_data(self):
+        return self.lidar_data
 
 
 class SemanticLidar(Sensor):
