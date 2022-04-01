@@ -6,9 +6,10 @@
 
 ## Features
 - Provide Sensor Data (Lidar, Cameras (depth, segmentation, rgb), GNSS, IMU)
+- Provide bboxes of vehicles.
+- Draw lidar points on RGB camera.
 
-
-## Getting started and documentation
+## Getting started
 
 ### Docker setup
 - Clone the ros-bridge repo with carla_msgs submodule.
@@ -22,7 +23,7 @@
  docker build -t carlafox .
 ```
 
-### QuickStart
+### Quick Start
 - Start the Carla Server
 ```bash
  ./CarlaUE4.sh -RenderOffScreen -nosound 
@@ -45,16 +46,16 @@
  roslaunch carla_ros_bridge carla_ros_bridge_with_example_ego_vehicle.launch
 ```
 
-- Or just run the ros bridge and spawn actors from another client. This runs the ros_bridge in sync mode i.e. all sensor data is in sync and ros_bridge ```ticks``` the world. The client used for spawning actors/sensors shall not tick but ```wait_for_tick()``` from ros_bridge.
+- Or just run the ros bridge and spawn actors from another client. This runs the ros_bridge in sync mode i.e. all sensor data is in sync and ros_bridge ```tick()``` the world. The client used for spawning actors/sensors shall not ```tick()``` but ```wait_for_tick()``` from ros_bridge.
 ```bash
  roslaunch carla_ros_bridge carla_ros_bridge.launch
 ```
 
-- To run in passive mode where rosbridge won't be ticking but only publishing data and the client used to spawn actors will be ticking.
+- To run in passive mode where rosbridge won't be ticking but only publishing data and the client used to spawn actors shall ```tick()```.
 ```bash
- roslaunch carla_ros_bridge carla_ros_bridge_with_example_ego_vehicle.launch passive:=True
+ roslaunch carla_ros_bridge carla_ros_bridge.launch passive:=True
 ```
-*NOTE*: Another client must tick otherwise carla-ros-bridge will freeze.
+*NOTE*: Another client must ```tick()``` otherwise carla-ros-bridge will freeze.
 
 - Access FoxGlove here -> http://localhost:8080/?ds=rosbridge-websocket&ds.url=ws%3A%2F%2Flocalhost%3A9090&layoutURL=foxglove_layout.json
 
