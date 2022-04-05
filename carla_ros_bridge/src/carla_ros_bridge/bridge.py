@@ -309,9 +309,12 @@ class CarlaRosBridge(CompatibleNode):
         vehicles = self.carla_world.get_actors().filter('vehicle.*')
         for parent, rgb_cams in self.rgb_cams.items():
             # check if lidar exists for the same parent
-            curr_lidar = self.lidar[parent]
-            if curr_lidar is None:
+            curr_lidar = None
+            try:
+                curr_lidar = self.lidar[parent]
+            except Exception as e:
                 self.node.logwarn(f"lidar is None for {parent}")
+
             for id_, rgb_cam in rgb_cams.items():
                 bounding_boxes = ClientSideBoundingBoxes.get_bounding_boxes(vehicles, rgb_cam.carla_actor)
                 img = rgb_cam.get_image()
@@ -339,7 +342,10 @@ class CarlaRosBridge(CompatibleNode):
                     cv2.line(img, points[3], points[7], CarlaRosBridge.BB_COLOR, thickness=2)
 
                 # lidar points
-                lidar_data = curr_lidar.get_lidar_data()
+                lidar_data = None
+                if curr_lidar is not None:
+                    lidar_data = curr_lidar.get_lidar_data()
+                    
                 if self.lidar_to_camera is not None:
                     if lidar_data is not None:
                         if lidar_data.frame == frame:
