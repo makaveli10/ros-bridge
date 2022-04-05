@@ -308,7 +308,7 @@ class CarlaRosBridge(CompatibleNode):
 
         vehicles = self.carla_world.get_actors().filter('vehicle.*')
         for parent, rgb_cams in self.rgb_cams.items():
-            # check if lidar for the smae parent exists
+            # check if lidar exists for the same parent
             curr_lidar = self.lidar[parent]
             if curr_lidar is None:
                 self.node.logwarn(f"lidar is None for {parent}")
