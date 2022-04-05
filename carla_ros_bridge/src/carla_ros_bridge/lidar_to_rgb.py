@@ -21,21 +21,16 @@ class LidarToRGB(object):
     """LIDAR point cloud overlay on RGB images implementation.
     """
     
-    def __init__(self, lidar, dot_extent=2) -> None:
+    def __init__(self, dot_extent=2) -> None:
         """
         Constructor
 
-        :param lidar: Lidar sensor object
-        :type lidar: carla_ros_bridge.Lidar 
-        :param rgb_cam: RGB camera sensor object
-        :type rgb_cam: carla_ros_bridge.RgbCamera
         :param dot_extent: visualization dot extent in pixels (Recomended [1-4]) (default: 2)
         :type dot_extent: int
         """
-        self.lidar = lidar
         self.dot_extent = dot_extent - 1
 
-    def lidar_overlay(self, lidar_data, im_array, rgb_cam, image_w, image_h):
+    def lidar_overlay(self, lidar, lidar_data, im_array, rgb_cam, image_w, image_h):
         """Method to project lidar points on RGB camera image.
 
         :param lidar_data: carla lidar measurement object
@@ -61,7 +56,7 @@ class LidarToRGB(object):
             local_lidar_points, [np.ones(local_lidar_points.shape[1])]]
 
         # This (4, 4) matrix transforms the points from lidar space to world space.
-        lidar_2_world = self.lidar.carla_actor.get_transform().get_matrix()
+        lidar_2_world = lidar.carla_actor.get_transform().get_matrix()
 
         # Transform the points from lidar space to world space.
         world_points = np.dot(lidar_2_world, local_lidar_points)
