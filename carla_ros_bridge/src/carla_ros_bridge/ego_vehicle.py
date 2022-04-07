@@ -109,7 +109,7 @@ class EgoVehicle(Vehicle):
         self.map = self.node.carla_world.get_map()
         self.waypoint_publisher = node.new_publisher(
             Path,
-            self.get_topic_prefix() + "/ego_path",
+            self.get_topic_prefix() + "/waypoints",
             QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
         
         # TODO: make this a queue to have limited waypoints
