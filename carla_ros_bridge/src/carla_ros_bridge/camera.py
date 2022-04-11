@@ -24,7 +24,7 @@ from ros_compatibility.core import get_ros_version
 
 from carla_ros_bridge.sensor import Sensor, create_cloud
 
-from sensor_msgs.msg import CameraInfo, Image, PointCloud2, PointField
+from sensor_msgs.msg import CameraInfo, CompressedImage, PointCloud2, PointField
 
 ROS_VERSION = get_ros_version()
 
@@ -74,7 +74,7 @@ class Camera(Sensor):
 
         self.camera_info_publisher = node.new_publisher(CameraInfo, self.get_topic_prefix() +
                                                         '/camera_info', qos_profile=10)
-        self.camera_image_publisher = node.new_publisher(Image, self.get_topic_prefix() +
+        self.camera_image_publisher = node.new_publisher(CompressedImage, self.get_topic_prefix() +
                                                          '/' + 'image', qos_profile=10)
         self.frame = None
 
@@ -162,7 +162,8 @@ class Camera(Sensor):
                 "Camera{} received image not matching configuration".format(self.get_prefix()))
         image_data_array, encoding = self.get_carla_image_data_array(
             carla_camera_data)
-        img_msg = Camera.cv_bridge.cv2_to_imgmsg(image_data_array, encoding=encoding)
+        # img_msg = Camera.cv_bridge.cv2_to_imgmsg(image_data_array, encoding=encoding)
+        img_msg = Camera.cv_bridge.cv2_to_compressed_imgmsg(image_data_array)
         # the camera data is in respect to the camera's own frame
         img_msg.header = self.get_msg_header(timestamp=carla_camera_data.timestamp)
 
@@ -241,7 +242,9 @@ class RgbCamera(Camera):
             shape=(carla_image.height, carla_image.width, 4),
             dtype=numpy.uint8, buffer=carla_image.raw_data)
         carla_image_data_array = carla_image_data_array[:, :, :3]
-        carla_image_data_array = carla_image_data_array[:, :, ::-1]
+        # cv_bridge.cv2_to_compressed_imgmsg not accepting encoding
+        # so no need for rgb_to_bgr
+        # carla_image_data_array = carla_image_data_array[:, :, ::-1]
         self.image = carla_image_data_array
         return carla_image_data_array, 'rgb8'
 
@@ -391,7 +394,7 @@ class SemanticSegmentationCamera(Camera):
             shape=(carla_image.height, carla_image.width, 4),
             dtype=numpy.uint8, buffer=carla_image.raw_data)
         carla_image_data_array = carla_image_data_array[:, :, :3]
-        carla_image_data_array = carla_image_data_array[:, :, ::-1]
+        # carla_image_data_array = carla_image_data_array[:, :, ::-1]
         return carla_image_data_array, 'rgb8'
 
 
