@@ -13,7 +13,6 @@ Class that handle communication between CARLA and ROS
 
 import math
 import os
-from urllib import response
 import pkg_resources
 
 try:
