@@ -11,8 +11,10 @@ Rosbridge class:
 Class that handle communication between CARLA and ROS
 """
 
+import math
 import os
 import pkg_resources
+
 try:
     import queue
 except ImportError:
@@ -23,6 +25,8 @@ from threading import Thread, Lock, Event
 
 import carla
 import cv2
+
+from transforms3d.euler import euler2quat
 
 import ros_compatibility as roscomp
 from ros_compatibility.node import CompatibleNode
@@ -42,6 +46,9 @@ from carla_ros_bridge.bounding_boxes import ClientSideBoundingBoxes
 from carla_ros_bridge.camera import Camera, RgbCamera
 from carla_ros_bridge.lidar import Lidar
 from carla_ros_bridge.lidar_to_rgb import LidarToRGB
+from carla_ros_bridge.vehicle import Vehicle
+from carla_ros_bridge.tf_sensor import TFSensor
+from geometry_msgs.msg import Pose
 
 
 class CarlaRosBridge(CompatibleNode):
@@ -133,6 +140,9 @@ class CarlaRosBridge(CompatibleNode):
         self._all_vehicle_control_commands_received = Event()
         self._expected_ego_vehicle_control_command_ids = []
         self._expected_ego_vehicle_control_command_ids_lock = Lock()
+        
+        # To spawn pseudo tf sensor
+        self.ego_vehicles = {}
 
         if self.sync_mode:
             self.carla_run_state = CarlaControl.PLAY
@@ -143,6 +153,7 @@ class CarlaRosBridge(CompatibleNode):
                                       qos_profile=10, callback_group=self.callback_group)
             
             # for bbox image publish
+            self.n_rgb_cams = 0
             self.rgb_cams = {}
             self.boxes_lidar_publishers = {}
             
@@ -190,6 +201,70 @@ class CarlaRosBridge(CompatibleNode):
             response.id = -1
             response.error_string = 'Bridge is shutting down, object will not be spawned.'
         return response
+    
+    def create_spawn_point(self, x, y, z, roll, pitch, yaw):
+        spawn_point = Pose()
+        spawn_point.position.x = x
+        spawn_point.position.y = y
+        spawn_point.position.z = z
+        quat = euler2quat(math.radians(roll), math.radians(pitch), math.radians(yaw))
+
+        spawn_point.orientation.w = quat[0]
+        spawn_point.orientation.x = quat[1]
+        spawn_point.orientation.y = quat[2]
+        spawn_point.orientation.z = quat[3]
+        return spawn_point
+    
+    def spawn_pseudo_sensor(self):
+        if len(self.ego_vehicles) == 0:
+            if not self.get_ego_vehicles():
+                self.logwarn("No ego vehicles found cannot spawn pesudo sensors.")
+                return
+        
+        for attached_vehicle_id, has_tf_sensor in self.ego_vehicles.items():
+            if has_tf_sensor:
+                continue
+            try:
+                sensor_transform = self.create_spawn_point(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+                # create request
+                spawn_object_request = roscomp.get_service_request(SpawnObject)
+                spawn_object_request.type = "sensor.pseudo.tf"
+                spawn_object_request.id = "tf"
+                spawn_object_request.attach_to = attached_vehicle_id
+                spawn_object_request.transform = sensor_transform
+                spawn_object_request.random_pose = False  # never set a random pose for a sensor
+
+                response = self.spawn_object(spawn_object_request)
+                response_id = response.id
+                if response_id == -1:
+                    raise RuntimeError(response.error_string)
+                else:
+                    self.ego_vehicles[attached_vehicle_id] = True
+            except RuntimeError as e:
+                self.logerr(
+                        "Sensor {} for vehicle {} will not be spawned: {}".format(
+                        "sensor.pseudo.tf", attached_vehicle_id,  e))
+                continue
+
+    def get_ego_vehicles_and_tf_sensors(self):
+        """Gets all ego vehicles from the world actors dict.
+        """
+        for id_, actor in self.actor_factory.actors.items():
+            if not isinstance(actor, Vehicle): continue
+            if not actor.carla_actor.attributes.get('role_name') \
+                    in self.parameters['ego_vehicle']['role_name']:
+                continue
+        
+            if id_ not in self.ego_vehicles.keys():
+                self.ego_vehicles[id_] = False
+            
+        # Check if tf sensor alreday exists for any of the ego vehicles
+        for _, actor in self.actor_factory.actors.items():
+            if not isinstance(actor, TFSensor): continue
+            self.loginfo(f"Found TFSensor for ego vehicle with id={actor.parent.uid}")
+            if actor.parent.uid not in self.ego_vehicles.keys():
+                self.ego_vehicles[id_] = False
+            self.ego_vehicles[actor.parent.uid] = True
 
     def destroy_object(self, req, response=None):
         response = roscomp.get_service_response(DestroyObject)
@@ -265,6 +340,9 @@ class CarlaRosBridge(CompatibleNode):
         """Gets all the RGB cameras and lidar sensor for
         all the Ego Vehicles in the simulation.
         """
+        # Get ego vehicles
+        self.get_ego_vehicles_and_tf_sensors()
+
         # Fetch RGB cameras and create publishers
         for _, actor in self.actor_factory.actors.items():
             if not isinstance(actor, RgbCamera): continue
@@ -282,6 +360,7 @@ class CarlaRosBridge(CompatibleNode):
                     actor.get_topic_prefix() + '/' + 'bboxes_lidar',
                     qos_profile=10)
                 self.rgb_cams[parent][id_] = actor
+                self.n_rgb_cams += 1
         
         # Fetch lidar sensors 
         for _, actor in self.actor_factory.actors.items():
@@ -297,7 +376,7 @@ class CarlaRosBridge(CompatibleNode):
     def publish_bboxes_and_lidar_overlay(self):
         """Publishes bboxes and lidar overlay RGB.
         """
-        if len(self.rgb_cams.keys()) != len(self.carla_world.get_actors().filter('sensor.camera.rgb')) or \
+        if self.n_rgb_cams != len(self.carla_world.get_actors().filter('sensor.camera.rgb')) or \
             len(self.lidar.keys()) != len(self.carla_world.get_actors().filter('sensor.lidar.ray_cast')) or \
             self.lidar_to_camera is None:
             self.get_rgb_cams_and_publishers()
@@ -313,7 +392,7 @@ class CarlaRosBridge(CompatibleNode):
             if parent in self.lidar:
                 curr_lidar = self.lidar[parent]
             else:
-                self.node.logwarn(f"lidar is None for {parent}")
+                self.logwarn(f"lidar is None for {parent}")
 
             for id_, rgb_cam in rgb_cams.items():
                 bounding_boxes = ClientSideBoundingBoxes.get_bounding_boxes(vehicles, rgb_cam.carla_actor)
@@ -385,6 +464,12 @@ class CarlaRosBridge(CompatibleNode):
                                 actor_id)
 
             self.actor_factory.update_available_objects()
+
+            # Spawn pseudo tf sensor if not exist
+            if len(self.ego_vehicles.keys()):
+                if list(self.ego_vehicles.values()).count(False) > 0:
+                    self.spawn_pseudo_sensor()
+
             frame = self.carla_world.tick()
             
             world_snapshot = self.carla_world.get_snapshot()
