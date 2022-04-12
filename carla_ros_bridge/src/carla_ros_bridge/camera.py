@@ -76,6 +76,7 @@ class Camera(Sensor):
                                                         '/camera_info', qos_profile=10)
         self.camera_image_publisher = node.new_publisher(Image, self.get_topic_prefix() +
                                                          '/' + 'image', qos_profile=10)
+        self.frame = None
 
     def destroy(self):
         super(Camera, self).destroy()
@@ -118,6 +119,7 @@ class Camera(Sensor):
         Function (override) to transform the received carla camera data
         into a ROS image message
         """
+        self.frame = carla_camera_data.frame
         img_msg = self.get_ros_image(carla_camera_data)
 
         cam_info = self._camera_info
@@ -165,6 +167,9 @@ class Camera(Sensor):
         img_msg.header = self.get_msg_header(timestamp=carla_camera_data.timestamp)
 
         return img_msg
+    
+    def get_frame(self):
+        return self.frame
 
     @abstractmethod
     def get_carla_image_data_array(self, carla_camera_data):
@@ -211,8 +216,13 @@ class RgbCamera(Camera):
                                         node=node,
                                         carla_actor=carla_actor,
                                         synchronous_mode=synchronous_mode)
-
+        self.image = None
         self.listen()
+        calibration = numpy.identity(3)
+        calibration[0, 2] = float(self.carla_actor.attributes.get('image_size_x')) / 2.0
+        calibration[1, 2] = float(self.carla_actor.attributes.get('image_size_y')) / 2.0
+        calibration[0, 0] = calibration[1, 1] = float(self.carla_actor.attributes.get('image_size_x')) / (2.0 * numpy.tan(90 * numpy.pi / 360.0))
+        self.carla_actor.calibration = calibration
 
     def get_carla_image_data_array(self, carla_image):
         """
@@ -232,9 +242,15 @@ class RgbCamera(Camera):
             dtype=numpy.uint8, buffer=carla_image.raw_data)
         carla_image_data_array = carla_image_data_array[:, :, :3]
         carla_image_data_array = carla_image_data_array[:, :, ::-1]
+        self.image = carla_image_data_array
         return carla_image_data_array, 'rgb8'
 
-
+    def get_image(self):
+        if self.image is not None:
+            img = numpy.ascontiguousarray(self.image, dtype=numpy.uint8)
+            return img
+        return None
+        
 class DepthCamera(Camera):
 
     """
@@ -297,18 +313,26 @@ class DepthCamera(Camera):
         #    shape=(carla_image.height, carla_image.width, 1),
         #    dtype=numpy.float32, buffer=carla_image.raw_data)
         #
-        bgra_image = numpy.ndarray(
-            shape=(carla_image.height, carla_image.width, 4),
-            dtype=numpy.uint8, buffer=carla_image.raw_data)
+        # bgra_image = numpy.ndarray(
+        #     shape=(carla_image.height, carla_image.width, 4),
+        #     dtype=numpy.uint8, buffer=carla_image.raw_data)
 
-        # Apply (R + G * 256 + B * 256 * 256) / (256**3 - 1) * 1000
-        # according to the documentation:
-        # https://carla.readthedocs.io/en/latest/cameras_and_sensors/#camera-depth-map
-        scales = numpy.array([65536.0, 256.0, 1.0, 0]) / (256**3 - 1) * 1000
-        depth_image = numpy.dot(bgra_image, scales).astype(numpy.float32)
+        # # Apply (R + G * 256 + B * 256 * 256) / (256**3 - 1) * 1000
+        # # according to the documentation:
+        # # https://carla.readthedocs.io/en/latest/cameras_and_sensors/#camera-depth-map
+        # scales = numpy.array([65536.0, 256.0, 1.0, 0]) / (256**3 - 1) * 1000
+        # depth_image = numpy.dot(bgra_image, scales).astype(numpy.float32)
 
         # actually we want encoding '32FC1'
         # which is automatically selected by cv bridge with passthrough
+
+        # above ros-bridge conversion(for rviz) doesnt work for foxglove
+        carla_image.convert(carla.ColorConverter.LogarithmicDepth)
+        carla_image_data_array = numpy.ndarray(
+            shape=(carla_image.height, carla_image.width, 4),
+            dtype=numpy.uint8, buffer=carla_image.raw_data)
+        carla_image_data_array = carla_image_data_array[:, :, :3]
+        depth_image = carla_image_data_array[:, :, ::-1]
         return depth_image, 'passthrough'
 
 

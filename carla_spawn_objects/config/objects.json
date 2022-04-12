@@ -30,10 +30,6 @@
             "id": "audi8"
         },
         {
-            "type": "vehicle.audi.tt",
-            "id": "audi9"
-        },
-        {
             "type": "vehicle.dodge.charger_police_2020",
             "id": "police1"
         },
@@ -56,10 +52,6 @@
         {
             "type": "walker.pedestrian.0002",
             "id": "w2"
-        },
-        {
-            "type": "walker.pedestrian.0003",
-            "id": "w3"
         },
         {
             "type": "vehicle.tesla.model3",
@@ -113,6 +105,14 @@
                     "image_size_y": 70
                 },
                 {
+                    "type": "sensor.camera.depth",
+                    "id": "depth_front",
+                    "spawn_point": {"x": 2.0, "y": 0.0, "z": 2.0, "roll": 0.0, "pitch": 0.0, "yaw": 0.0},
+                    "fov": 90.0,
+                    "image_size_x": 400,
+                    "image_size_y": 70
+                },
+                {
                     "type": "sensor.other.gnss",
                     "id": "gnss",
                     "spawn_point": {"x": 1.0, "y": 0.0, "z": 2.0},
@@ -136,10 +136,6 @@
                     "type": "sensor.other.lane_invasion",
                     "id": "lane_invasion",
                     "spawn_point": {"x": 0.0, "y": 0.0, "z": 0.0}
-                },
-                {
-                    "type": "sensor.pseudo.tf",
-                    "id": "tf"
                 },
                 {
                     "type": "sensor.pseudo.objects",
