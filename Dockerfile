@@ -1,21 +1,5 @@
 FROM ros:noetic-ros-base
 
-# install foxglove studio & dependencies
-RUN apt update && apt install -y curl wget git git-lfs debian-keyring debian-archive-keyring apt-transport-https nginx
-RUN curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash - && \
-    apt install nodejs
-
-RUN git clone -b layoutURL-deeplinking https://github.com/makaveli10/studio.git && cd studio && git show HEAD
-RUN curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | tee /etc/apt/trusted.gpg.d/caddy-stable.asc && \
-        curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list && \
-        apt update && \
-        apt install caddy
-
-RUN cd studio && npm install -g yarn && \
-                 yarn install --immutable && \
-                 yarn run web:build:prod && \
-                 cp -r /studio/web/.webpack/* ./
-
 # setup ros bridge
 RUN mkdir -p /opt/carla-ros-bridge/src
 WORKDIR /opt/carla-ros-bridge/
