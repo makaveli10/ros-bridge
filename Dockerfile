@@ -37,4 +37,5 @@ COPY ./config/default /etc/nginx/sites-enabled
 
 WORKDIR /studio
 
-CMD ["caddy", "file-server", "--listen", ":8080"]
+COPY start-ros-bridge.sh wait-for-carla.py /
+ENTRYPOINT ["/start-ros-bridge.sh"]
