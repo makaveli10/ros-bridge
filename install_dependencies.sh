@@ -2,13 +2,12 @@
 
 PYTHON_SUFFIX="3"
 
+# for map server
 if [ "$ROS_VERSION" = "2" ]; then
-    ADDITIONAL_PACKAGES="ros-$ROS_DISTRO-rviz2"
+    ADDITIONAL_PACKAGES="ros-$ROS_DISTRO-navigation2
+                         ros-$ROS_DISTRO-nav2-bringup"
 else
-    ADDITIONAL_PACKAGES="ros-$ROS_DISTRO-rviz
-                         ros-$ROS_DISTRO-opencv-apps
-                         ros-$ROS_DISTRO-rospy-message-converter
-                         ros-$ROS_DISTRO-pcl-ros"
+    ADDITIONAL_PACKAGES="ros-$ROS_VERSION-map-server"
 fi
 
 echo ADDITIONAL PACKAGES $ADDITIONAL_PACKAGES
@@ -30,11 +29,7 @@ sudo apt-get install --no-install-recommends -y \
     python3-tk \
     wget \
     qt5-default \
-    ros-$ROS_DISTRO-ackermann-msgs \
-    ros-$ROS_DISTRO-pcl-conversions \
     build-essential \
-    ros-$ROS_DISTRO-rqt-image-view \
-    ros-$ROS_DISTRO-rqt-gui-py \
     python-is-python3 \
     $ADDITIONAL_PACKAGES
 

@@ -28,7 +28,7 @@ def generate_launch_description():
         ),
         launch.actions.DeclareLaunchArgument(
             name='spawn_point',
-            default_value=''
+            default_value='spawn_point_ego'
         ),
         launch.actions.DeclareLaunchArgument(
             name='town',
@@ -46,6 +46,11 @@ def generate_launch_description():
             name='fixed_delta_seconds',
             default_value='0.05'
         ),
+        launch.actions.DeclareLaunchArgument(
+            name='objects_definition_file',
+            default_value=os.path.join(get_package_share_directory(
+                'carla_spawn_objects'), 'config', 'objects.json')
+        ),
         launch.actions.IncludeLaunchDescription(
             launch.launch_description_sources.PythonLaunchDescriptionSource(
                 os.path.join(get_package_share_directory(
@@ -58,23 +63,11 @@ def generate_launch_description():
                 'timeout': launch.substitutions.LaunchConfiguration('timeout'),
                 'passive': launch.substitutions.LaunchConfiguration('passive'),
                 'synchronous_mode_wait_for_vehicle_control_command': launch.substitutions.LaunchConfiguration('synchronous_mode_wait_for_vehicle_control_command'),
-                'fixed_delta_seconds': launch.substitutions.LaunchConfiguration('fixed_delta_seconds')
+                'fixed_delta_seconds': launch.substitutions.LaunchConfiguration('fixed_delta_seconds'),
+                'objects_definition_file': launch.substitutions.LaunchConfiguration('objects_definition_file')
             }.items()
         ),
-        launch.actions.IncludeLaunchDescription(
-            launch.launch_description_sources.PythonLaunchDescriptionSource(
-                os.path.join(get_package_share_directory(
-                    'carla_spawn_objects'), 'carla_example_ego_vehicle.launch.py')
-            ),
-            launch_arguments={
-                'host': launch.substitutions.LaunchConfiguration('host'),
-                'port': launch.substitutions.LaunchConfiguration('port'),
-                'timeout': launch.substitutions.LaunchConfiguration('timeout'),
-                'vehicle_filter': launch.substitutions.LaunchConfiguration('vehicle_filter'),
-                'role_name': launch.substitutions.LaunchConfiguration('role_name'),
-                'spawn_point': launch.substitutions.LaunchConfiguration('spawn_point')
-            }.items()
-        ),
+        
         # launch.actions.IncludeLaunchDescription(
         #     launch.launch_description_sources.PythonLaunchDescriptionSource(
         #         os.path.join(get_package_share_directory(

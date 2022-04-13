@@ -1,5 +1,7 @@
+import os
 import launch
 import launch_ros.actions
+from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
@@ -13,6 +15,11 @@ def generate_launch_description():
             name='port',
             default_value='2000',
             description='TCP port of the CARLA server'
+        ),
+        launch.actions.DeclareLaunchArgument(
+            name='websocket_port',
+            default_value='9090',
+            description='Web socket port'
         ),
         launch.actions.DeclareLaunchArgument(
             name='timeout',
@@ -54,6 +61,18 @@ def generate_launch_description():
             default_value=["hero", "ego_vehicle", "hero0", "hero1", "hero2",
                            "hero3", "hero4", "hero5", "hero6", "hero7", "hero8", "hero9"],
             description='Role names to identify ego vehicles. '
+        ),
+        launch.actions.DeclareLaunchArgument(
+            name='objects_definition_file',
+            default_value=os.path.join(get_package_share_directory(
+                'carla_spawn_objects'), 'config', 'objects_no_ego.json')
+        ),
+        launch.actions.DeclareLaunchArgument(
+            name='map_config',
+            default_value=os.path.join(
+                get_package_share_directory('carla_ros_bridge'), 
+                'map_Town01.yaml'),
+            description='Nav2 map server config yaml file path'
         ),
         launch_ros.actions.Node(
             package='carla_ros_bridge',
@@ -97,7 +116,40 @@ def generate_launch_description():
                     'ego_vehicle_role_name': launch.substitutions.LaunchConfiguration('ego_vehicle_role_name')
                 }
             ]
-        )
+        ),
+        launch.actions.IncludeLaunchDescription(
+            launch.launch_description_sources.PythonLaunchDescriptionSource(
+                os.path.join(get_package_share_directory(
+                    'carla_spawn_objects'), 'carla_example_ego_vehicle.launch.py')
+            ),
+            launch_arguments={
+                'host': launch.substitutions.LaunchConfiguration('host'),
+                'port': launch.substitutions.LaunchConfiguration('port'),
+                'timeout': launch.substitutions.LaunchConfiguration('timeout'),
+                'vehicle_filter': launch.substitutions.LaunchConfiguration('vehicle_filter'),
+                'role_name': launch.substitutions.LaunchConfiguration('role_name'),
+                'spawn_point': launch.substitutions.LaunchConfiguration('spawn_point'),
+                'objects_definition_file': launch.substitutions.LaunchConfiguration('objects_definition_file')
+            }.items()
+        ),
+        launch.actions.IncludeLaunchDescription(
+            launch.launch_description_sources.AnyLaunchDescriptionSource(
+                os.path.join(os.path.join(get_package_share_directory(
+                    'rosbridge_server'), 'launch'), 'rosbridge_websocket_launch.xml')
+            ),
+            launch_arguments={
+                'port': launch.substitutions.LaunchConfiguration('websocket_port')
+            }.items()
+        ),
+        launch.actions.IncludeLaunchDescription(
+            launch.launch_description_sources.PythonLaunchDescriptionSource(
+                os.path.join(get_package_share_directory(
+                    'carla_ros_bridge'), 'carla_ros_bridge_map_server.launch.py')
+            ),
+            launch_arguments={
+                'map_config':  launch.substitutions.LaunchConfiguration('map_config')
+            }.items()
+        ),
     ])
     return ld
 
