@@ -14,7 +14,7 @@
 ### Docker setup
 - Clone the ros-bridge repo with carla_msgs submodule.
 ```bash
- git clone --recurse-submodules https://github.com/makaveli10/ros-bridge.git
+ git clone --recurse-submodules -b ros2_test https://github.com/makaveli10/ros-bridge.git
  cd ros-bridge/
 ```
 
