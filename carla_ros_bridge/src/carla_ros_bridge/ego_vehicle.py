@@ -9,6 +9,7 @@
 """
 Classes to handle Carla vehicles
 """
+from email import header
 import math
 import os
 
@@ -224,7 +225,7 @@ class EgoVehicle(Vehicle):
         msg.header = self.get_msg_header("map", timestamp=timestamp)
         if self.current_route is not None:
             for wp in self.current_route:
-                pose = PoseStamped()
+                pose = PoseStamped(header=msg.header)
                 pose.pose = trans.carla_transform_to_ros_pose(wp.transform)
                 msg.poses.append(pose)
 
