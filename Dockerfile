@@ -8,7 +8,7 @@ RUN apt update && apt install -y curl wget git git-lfs debian-keyring debian-arc
 RUN curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash - && \
     apt install nodejs
 
-RUN git clone -b v1.2.0 https://github.com/foxglove/studio.git
+RUN git clone -b layoutURL-deeplinking https://github.com/makaveli10/studio.git && cd studio && git show HEAD
 RUN curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | tee /etc/apt/trusted.gpg.d/caddy-stable.asc && \
         curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list && \
         apt update && \
@@ -35,6 +35,8 @@ COPY . /opt/carla-ros-bridge/src
 
 RUN /bin/bash -c 'source /opt/ros/$ROS_DISTRO/setup.bash ; \
                   if [ "$ROS_VERSION" == "2" ]; then colcon build; else catkin_make install; fi'
+
+COPY ./config/default /etc/nginx/sites-enabled
 
 WORKDIR /studio
 
