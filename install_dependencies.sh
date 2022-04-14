@@ -7,7 +7,8 @@ if [ "$ROS_VERSION" = "2" ]; then
     ADDITIONAL_PACKAGES="ros-$ROS_DISTRO-navigation2
                          ros-$ROS_DISTRO-nav2-bringup"
 else
-    ADDITIONAL_PACKAGES="ros-$ROS_VERSION-map-server"
+    ADDITIONAL_PACKAGES="ros-$ROS_DISTRO-map-server
+                         ros-$ROS_DISTRO-ros-numpy"
 fi
 
 echo ADDITIONAL PACKAGES $ADDITIONAL_PACKAGES
