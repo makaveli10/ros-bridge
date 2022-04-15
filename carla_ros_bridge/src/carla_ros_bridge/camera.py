@@ -160,10 +160,9 @@ class Camera(Sensor):
                 (carla_camera_data.width != self._camera_info.width)):
             self.node.logerr(
                 "Camera{} received image not matching configuration".format(self.get_prefix()))
-        image_data_array, encoding = self.get_carla_image_data_array(
-            carla_camera_data)
-        # img_msg = Camera.cv_bridge.cv2_to_imgmsg(image_data_array, encoding=encoding)
+        image_data_array = self.get_carla_image_data_array(carla_camera_data)
         img_msg = Camera.cv_bridge.cv2_to_compressed_imgmsg(image_data_array)
+        
         # the camera data is in respect to the camera's own frame
         img_msg.header = self.get_msg_header(timestamp=carla_camera_data.timestamp)
 
@@ -242,11 +241,8 @@ class RgbCamera(Camera):
             shape=(carla_image.height, carla_image.width, 4),
             dtype=numpy.uint8, buffer=carla_image.raw_data)
         carla_image_data_array = carla_image_data_array[:, :, :3]
-        # cv_bridge.cv2_to_compressed_imgmsg not accepting encoding
-        # so no need for rgb_to_bgr
-        # carla_image_data_array = carla_image_data_array[:, :, ::-1]
         self.image = carla_image_data_array
-        return carla_image_data_array, 'rgb8'
+        return carla_image_data_array
 
     def get_image(self):
         if self.image is not None:
@@ -336,7 +332,7 @@ class DepthCamera(Camera):
             dtype=numpy.uint8, buffer=carla_image.raw_data)
         carla_image_data_array = carla_image_data_array[:, :, :3]
         depth_image = carla_image_data_array[:, :, ::-1]
-        return depth_image, 'passthrough'
+        return depth_image
 
 
 class SemanticSegmentationCamera(Camera):
@@ -394,8 +390,7 @@ class SemanticSegmentationCamera(Camera):
             shape=(carla_image.height, carla_image.width, 4),
             dtype=numpy.uint8, buffer=carla_image.raw_data)
         carla_image_data_array = carla_image_data_array[:, :, :3]
-        # carla_image_data_array = carla_image_data_array[:, :, ::-1]
-        return carla_image_data_array, 'rgb8'
+        return carla_image_data_array
 
 
 class DVSCamera(Camera):
@@ -491,4 +486,4 @@ class DVSCamera(Camera):
         carla_image_data_array[self._dvs_events[:]['y'], self._dvs_events[:]['x'],
                                self._dvs_events[:]['pol'] * 2] = 255
 
-        return carla_image_data_array, 'bgr8'
+        return carla_image_data_array
