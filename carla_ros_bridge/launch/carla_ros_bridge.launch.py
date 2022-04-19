@@ -58,8 +58,9 @@ def generate_launch_description():
         ),
         launch.actions.DeclareLaunchArgument(
             name='ego_vehicle_role_name',
-            default_value=["hero", "ego_vehicle", "hero0", "hero1", "hero2",
-                           "hero3", "hero4", "hero5", "hero6", "hero7", "hero8", "hero9"],
+            default_value=["ego_vehicle", "hero0", "hero1", "hero2", "hero3", "hero4", "hero5", "hero6", "hero7", 
+                           "hero8", "hero9", "hero10", "hero11", "hero12", "hero13", "hero14", "hero15", "hero16", 
+                           "hero17", "hero18", "hero19"],
             description='Role names to identify ego vehicles. '
         ),
         launch.actions.DeclareLaunchArgument(

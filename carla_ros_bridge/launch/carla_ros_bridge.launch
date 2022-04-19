@@ -38,7 +38,9 @@
   <!-- Run the map server -->
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
 
-  <arg name='ego_vehicle_role_name' default='["ego", "hero", "ego_vehicle", "hero0", "hero1", "hero2", "hero3", "hero4", "hero5", "hero6", "hero7", "hero8", "hero9"]'/>
+  <arg name='ego_vehicle_role_name' default='["ego_vehicle", "hero0", "hero1", "hero2", "hero3", "hero4", "hero5", "hero6", 
+                                             "hero7","hero8", "hero9", "hero10", "hero11", "hero12", "hero13", "hero14", 
+                                             "hero15", "hero16", "hero17", "hero18", "hero19"]'/>
       
   <node pkg="carla_ros_bridge" name="carla_ros_bridge" type="bridge.py" output="screen" required="true">
     <param name="host" value="$(arg host)" unless="$(eval host == '')"/>
