@@ -477,7 +477,7 @@ class CarlaRosBridge(CompatibleNode):
                         if isinstance(actor, EgoVehicle):
                             self._expected_ego_vehicle_control_command_ids.append(
                                 actor_id)
-            # self.draw_bounding_boxes()
+
             self.actor_factory.update_available_objects()
 
             # Spawn pseudo tf sensor if not exist
