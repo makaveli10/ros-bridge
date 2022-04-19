@@ -13,6 +13,7 @@ Class that handle communication between CARLA and ROS
 
 import math
 import os
+import numpy as np
 import pkg_resources
 
 try:
@@ -41,7 +42,7 @@ from carla_ros_bridge.world_info import WorldInfo
 from carla_msgs.msg import CarlaControl, CarlaWeatherParameters
 from carla_msgs.srv import SpawnObject, DestroyObject, GetBlueprints
 from rosgraph_msgs.msg import Clock
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import CompressedImage
 from carla_ros_bridge.bounding_boxes import ClientSideBoundingBoxes
 from carla_ros_bridge.camera import Camera, RgbCamera
 from carla_ros_bridge.lidar import Lidar
@@ -356,7 +357,7 @@ class CarlaRosBridge(CompatibleNode):
 
             if id_ not in self.boxes_lidar_publishers[parent].keys():
                 self.boxes_lidar_publishers[parent][id_] = self.new_publisher(
-                    Image, 
+                    CompressedImage, 
                     actor.get_topic_prefix() + '/' + 'bboxes_lidar',
                     qos_profile=10)
                 self.rgb_cams[parent][id_] = actor
@@ -373,7 +374,7 @@ class CarlaRosBridge(CompatibleNode):
         if self.lidar_to_camera is None:
             self.lidar_to_camera = LidarToRGB()
     
-    def publish_bboxes_and_lidar_overlay(self):
+    def publish_bboxes_and_lidar_overlay(self, resized_width=416):
         """Publishes bboxes and lidar overlay RGB.
         """
         if self.n_rgb_cams != len(self.carla_world.get_actors().filter('sensor.camera.rgb')) or \
@@ -399,6 +400,8 @@ class CarlaRosBridge(CompatibleNode):
                 img = rgb_cam.get_image()
                 frame = rgb_cam.get_frame()
                 if img is None: continue
+                # rgb to bgr for drawing bboxes and lidar points
+                img = np.ascontiguousarray(img[:, :, ::-1])
 
                 # draw bounding boxes
                 for bbox in bounding_boxes:
@@ -438,15 +441,27 @@ class CarlaRosBridge(CompatibleNode):
                         self.logwarn("Lidar overlay.. lidar data is None.")
                 else:
                     self.logwarn("Lidar Overlay.. couldnt setup lidar_to_camera.")
+                
+                # bgr to rgb
+                img = img[:, :, ::-1]
 
                 # get header msg 
                 header = rgb_cam.get_msg_header()
 
-                # publish bboxes
-                img_msg_bboxes_lidar = Camera.cv_bridge.cv2_to_imgmsg(img, encoding='rgb8')
-                img_msg_bboxes_lidar.header = header
-                self.boxes_lidar_publishers[parent][id_].publish(img_msg_bboxes_lidar)
+                # resize image
+                (h, w) = img.shape[:2]
+                r = resized_width / float(w)
+                dim = (resized_width, int(h * r))
+                resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
 
+                # publish bboxes
+                img_msg_bboxes_lidar = Camera.cv_bridge.cv2_to_compressed_imgmsg(resized)
+                img_msg_bboxes_lidar.header = header
+                try:
+                    self.boxes_lidar_publishers[parent][id_].publish(img_msg_bboxes_lidar)
+                except Exception as e:
+                    self.logwarn(f"Publish bboxes with lidar exception {e}")
+   
     def _synchronous_mode_update(self):
         """
         execution loop for synchronous mode
@@ -475,12 +490,13 @@ class CarlaRosBridge(CompatibleNode):
             world_snapshot = self.carla_world.get_snapshot()
 
             self.status_publisher.set_frame(frame)
+            
+            # TODO; (ROS1) fix 'Clock' object has no attribute '_buff'
             self.update_clock(world_snapshot.timestamp)
+            
             self.logdebug("Tick for frame {} returned. Waiting for sensor data...".format(
                 frame))
             self._update(frame, world_snapshot.timestamp.elapsed_seconds)
-            # self.publish_bboxes()
-            # self.publish_lidar_overlay(world_snapshot.frame)
             self.publish_bboxes_and_lidar_overlay()
             self.logdebug("Waiting for sensor data finished.")
 
@@ -512,7 +528,6 @@ class CarlaRosBridge(CompatibleNode):
                 self.timestamp_last_run = carla_snapshot.timestamp.elapsed_seconds
                 self.update_clock(carla_snapshot.timestamp)
                 self.status_publisher.set_frame(carla_snapshot.frame)
-                # self.draw_bounding_boxes()
                 self._update(carla_snapshot.frame,
                              carla_snapshot.timestamp.elapsed_seconds)
 
@@ -653,7 +668,6 @@ def main(args=None):
             carla_world.tick()
 
         carla_bridge.initialize_bridge(carla_client.get_world(), parameters)
-
         carla_bridge.spin()
 
     except (IOError, RuntimeError) as e:
