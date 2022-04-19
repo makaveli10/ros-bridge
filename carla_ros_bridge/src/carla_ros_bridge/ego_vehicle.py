@@ -9,14 +9,9 @@
 """
 Classes to handle Carla vehicles
 """
-from email import header
 import math
-import os
-
 import numpy
 from collections import deque
-
-import carla
 
 import carla_common.transforms as trans
 from carla import VehicleControl
