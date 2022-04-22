@@ -14,13 +14,13 @@
 ### Docker setup
 - Clone the ros-bridge repo with carla_msgs submodule.
 ```bash
- git clone --recurse-submodules -b ros2_test https://github.com/makaveli10/ros-bridge.git
+ git clone --recurse-submodules https://github.com/makaveli10/ros-bridge.git
  cd ros-bridge/
 ```
 
 - Build docker image
 ```bash
- docker build -t carlafox . --build-arg ROS_DISTRO=foxy
+ docker build -t carlafox .
 ```
 
 ### Quick Start
@@ -38,22 +38,22 @@
 ```bash
  docker exec -it "container_id" bash
  cd /opt/carla-ros-bridge
- source ./install/setup.bash
+ source ./devel/setup.bash
 ```
 
 - Run Ego Vehicle example. 
 ```bash
- ros2 launch carla_ros_bridge carla_ros_bridge_with_example_ego_vehicle.launch.py
+ roslaunch carla_ros_bridge carla_ros_bridge_with_example_ego_vehicle.launch
 ```
 
 - Or just run the ros bridge and spawn actors from another client. This runs the ros_bridge in sync mode i.e. all sensor data is in sync and ros_bridge ```tick()``` the world. The client used for spawning actors/sensors shall not ```tick()``` but ```wait_for_tick()``` from ros_bridge.
 ```bash
- ros2 launch carla_ros_bridge carla_ros_bridge.launch.py
+ roslaunch carla_ros_bridge carla_ros_bridge.launch
 ```
 
 - To run in passive mode where rosbridge won't be ticking but only publishing data and the client used to spawn actors shall ```tick()```.
 ```bash
- ros2 launch carla_ros_bridge carla_ros_bridge.launch.py passive:=True
+ roslaunch carla_ros_bridge carla_ros_bridge.launch passive:=True
 ```
 *NOTE*: Another client must ```tick()``` otherwise carla-ros-bridge will freeze.
 
