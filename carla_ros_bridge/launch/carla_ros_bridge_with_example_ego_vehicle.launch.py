@@ -66,17 +66,7 @@ def generate_launch_description():
                 'fixed_delta_seconds': launch.substitutions.LaunchConfiguration('fixed_delta_seconds'),
                 'objects_definition_file': launch.substitutions.LaunchConfiguration('objects_definition_file')
             }.items()
-        ),
-        
-        # launch.actions.IncludeLaunchDescription(
-        #     launch.launch_description_sources.PythonLaunchDescriptionSource(
-        #         os.path.join(get_package_share_directory(
-        #             'carla_manual_control'), 'carla_manual_control.launch.py')
-        #     ),
-        #     launch_arguments={
-        #         'role_name': launch.substitutions.LaunchConfiguration('role_name')
-        #     }.items()
-        # )
+        )
     ])
     return ld
 

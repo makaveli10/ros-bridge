@@ -1,5 +1,4 @@
-
-ARG ROS_DISTRO
+ARG ROS_DISTRO=noetic
 
 FROM ros:$ROS_DISTRO-ros-base
 
