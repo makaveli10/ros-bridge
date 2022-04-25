@@ -32,6 +32,9 @@ if(${ROS_VERSION} EQUAL 1)
   install(DIRECTORY launch/
           DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
 
+  install(DIRECTORY config/
+          DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config)
+
   if(CATKIN_ENABLE_TESTING AND NOT $ENV{CI})
     find_package(rostest REQUIRED)
     add_rostest(test/ros_bridge_client.test)

@@ -10,12 +10,8 @@
 Classes to handle Carla vehicles
 """
 import math
-import os
-
 import numpy
 from collections import deque
-
-import carla
 
 import carla_common.transforms as trans
 from carla import VehicleControl
@@ -224,7 +220,7 @@ class EgoVehicle(Vehicle):
         msg.header = self.get_msg_header("map", timestamp=timestamp)
         if self.current_route is not None:
             for wp in self.current_route:
-                pose = PoseStamped()
+                pose = PoseStamped(header=msg.header)
                 pose.pose = trans.carla_transform_to_ros_pose(wp.transform)
                 msg.poses.append(pose)
 

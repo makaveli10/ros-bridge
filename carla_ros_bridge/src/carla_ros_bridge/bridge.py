@@ -491,7 +491,7 @@ class CarlaRosBridge(CompatibleNode):
 
             self.status_publisher.set_frame(frame)
             
-            # TODO; fix 'Clock' object has no attribute '_buff'
+            # TODO; (ROS1) fix 'Clock' object has no attribute '_buff'
             self.update_clock(world_snapshot.timestamp)
             
             self.logdebug("Tick for frame {} returned. Waiting for sensor data...".format(
@@ -528,7 +528,6 @@ class CarlaRosBridge(CompatibleNode):
                 self.timestamp_last_run = carla_snapshot.timestamp.elapsed_seconds
                 self.update_clock(carla_snapshot.timestamp)
                 self.status_publisher.set_frame(carla_snapshot.frame)
-                # self.draw_bounding_boxes()
                 self._update(carla_snapshot.frame,
                              carla_snapshot.timestamp.elapsed_seconds)
 
@@ -669,7 +668,6 @@ def main(args=None):
             carla_world.tick()
 
         carla_bridge.initialize_bridge(carla_client.get_world(), parameters)
-        
         carla_bridge.spin()
 
     except (IOError, RuntimeError) as e:

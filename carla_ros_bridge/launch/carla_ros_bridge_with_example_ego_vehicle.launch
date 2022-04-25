@@ -14,7 +14,7 @@
   <arg name='objects_file' default='objects.json'/>
 
   <!-- Map to load on startup (either a predefined CARLA town (e.g. 'Town01'), or a OpenDRIVE map file) -->
-  <arg name="town" default='Town10HD'/>
+  <arg name="town" default='Town01'/>
 
   <!-- Enable/disable passive mode -->
   <arg name='passive' default=''/>

@@ -10,7 +10,6 @@
   <arg name='host' default='carla'/>
   <arg name='port' default='2000'/>
   <arg name='timeout' default='200'/>
-
   <!-- 
     enable/disable synchronous mode. If enabled ros-bridge waits until
     expected data is received for all sensors
@@ -34,7 +33,7 @@
     (the vehicle from CARLA is selected which has the attribute 'role_name' set to this value)
   -->
 
-  <arg name="map_file" default="$(find carla_ros_bridge)/maps/$(arg town).yaml"/>
+  <arg name="map_file" default="$(find carla_ros_bridge)/config/$(arg town).yaml"/>
 
   <!-- Run the map server -->
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />

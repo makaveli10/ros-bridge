@@ -66,7 +66,8 @@ class CarlaSpawnObjects(CompatibleNode):
         else:
             self.logwarn("Error while spawning object (type='{}', id='{}').".format(
                 spawn_object_request.type, spawn_object_request.id))
-            raise RuntimeError(response.error_string)
+            # fix for the spawn object fatal exception; no need to raise exception
+            # raise RuntimeError(response.error_string)
         return response_id
 
     def spawn_objects(self):
@@ -369,7 +370,7 @@ def main(args=None):
             spawn_objects_node.logwarn(
                 "Spawning process has been interrupted. There might be actors that have not been destroyed properly")
         except RuntimeError as e:
-            roscomp.logfatal("Exception caught: {}".format(e))
+            roscomp.loginfo("Exception caught: {}".format(e))
         finally:
             roscomp.shutdown()
 

@@ -2,6 +2,17 @@
 
 PYTHON_SUFFIX="3"
 
+# for map server
+if [ "$ROS_VERSION" = "2" ]; then
+    ADDITIONAL_PACKAGES="ros-$ROS_DISTRO-navigation2
+                         ros-$ROS_DISTRO-nav2-bringup"
+else
+    ADDITIONAL_PACKAGES="ros-$ROS_DISTRO-map-server
+                         ros-$ROS_DISTRO-ros-numpy"
+fi
+
+echo ADDITIONAL PACKAGES $ADDITIONAL_PACKAGES
+
 sudo apt update
 sudo apt-get install --no-install-recommends -y \
     python3-pip \
@@ -13,24 +24,15 @@ sudo apt-get install --no-install-recommends -y \
     python3-rosdep \
     python3-wstool \
     python3-opencv \
-    ros-noetic-derived-object-msgs \
-    ros-noetic-rosbridge-suite \
-    ros-noetic-cv-bridge \
-    ros-noetic-ros-numpy \
+    ros-$ROS_DISTRO-derived-object-msgs \
+    ros-$ROS_DISTRO-rosbridge-suite \
+    ros-$ROS_DISTRO-cv-bridge \
     python3-tk \
     wget \
     qt5-default \
-    ros-noetic-ackermann-msgs \
-    ros-noetic-pcl-conversions \
     build-essential \
-    ros-noetic-rviz \
-    ros-noetic-opencv-apps \
-    ros-noetic-rospy-message-converter \
-    ros-noetic-pcl-ros \
-    ros-noetic-rqt-image-view \
-    ros-noetic-rqt-gui-py \
-    ros-noetic-map-server \
-    python-is-python3
+    python-is-python3 \
+    $ADDITIONAL_PACKAGES
 
 python3 -m pip install --upgrade pip
 python3 -m pip install -r /opt/carla-ros-bridge/requirements.txt
