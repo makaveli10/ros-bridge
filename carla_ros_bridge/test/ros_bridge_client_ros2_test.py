@@ -22,9 +22,9 @@ from ros_compatibility.qos import QoSProfile, DurabilityPolicy
 
 from std_msgs.msg import Header, String
 from rosgraph_msgs.msg import Clock
-from sensor_msgs.msg import CameraInfo, NavSatFix, Image, PointCloud2, Imu
+from sensor_msgs.msg import CameraInfo, NavSatFix, CompressedImage, PointCloud2, Imu
 from geometry_msgs.msg import Quaternion, Vector3, Pose
-from nav_msgs.msg import Odometry
+from nav_msgs.msg import Odometry, Path
 from derived_object_msgs.msg import ObjectArray
 from visualization_msgs.msg import MarkerArray
 from carla_msgs.msg import (CarlaEgoVehicleStatus, CarlaEgoVehicleInfo, CarlaWorldInfo,
@@ -36,7 +36,7 @@ def generate_test_description():
     ld = launch.LaunchDescription([
         launch.actions.DeclareLaunchArgument(
             name='host',
-            default_value='localhost'
+            default_value='carla'
         ),
         launch.actions.DeclareLaunchArgument(
             name='port',
@@ -77,7 +77,7 @@ def generate_test_description():
         ),
         launch.actions.DeclareLaunchArgument(
             name='spawn_point',
-            default_value=''
+            default_value='ego_vehicle'
         ),
         launch.actions.DeclareLaunchArgument(
             name='objects_definition_file',
@@ -270,27 +270,60 @@ class TestClock(unittest.TestCase):
             roscomp.init("test_node")
             node = CompatibleNode('test_node')
             msg = node.wait_for_message(
-                "/carla/ego_vehicle/rgb_front/image", Image, timeout=TIMEOUT)
+                "/carla/ego_vehicle/rgb_front/image", CompressedImage, timeout=TIMEOUT)
             self.assertEqual(msg.header.frame_id, "ego_vehicle/rgb_front")
+            self.assertNotEqual(msg.data, None)
+        finally:
+            if node is not None:
+                node.destroy_node()
+            roscomp.shutdown()
+
+    def test_third_person_camera_info(self):
+        """
+        Tests third person camera_info
+        """
+        try:
+            node = None
+            roscomp.init("test_node")
+            node = CompatibleNode('test_node')
+            msg = node.wait_for_message(
+                "/carla/ego_vehicle/rgb_view/camera_info", CameraInfo, timeout=TIMEOUT)
+            self.assertEqual(msg.header.frame_id, "ego_vehicle/rgb_view")
             self.assertEqual(msg.height, 600)
             self.assertEqual(msg.width, 800)
-            self.assertEqual(msg.encoding, "bgra8")
         finally:
             if node is not None:
                 node.destroy_node()
             roscomp.shutdown()
 
-    def test_dvs_camera_info(self):
+    def test_third_person_camera_image(self):
         """
-        Tests dvs camera info
+        Tests third person camera_images
         """
         try:
             node = None
             roscomp.init("test_node")
             node = CompatibleNode('test_node')
             msg = node.wait_for_message(
-                "/carla/ego_vehicle/dvs_front/camera_info", CameraInfo, timeout=TIMEOUT)
-            self.assertEqual(msg.header.frame_id, "ego_vehicle/dvs_front")
+                "/carla/ego_vehicle/rgb_view/image", CompressedImage, timeout=TIMEOUT)
+            self.assertEqual(msg.header.frame_id, "ego_vehicle/rgb_view")
+            self.assertNotEqual(msg.data, None)
+        finally:
+            if node is not None:
+                node.destroy_node()
+            roscomp.shutdown()
+
+    def test_semantic_segmentation_camera_info(self):
+        """
+        Tests semantic_segmentation camera info
+        """
+        try:
+            node = None
+            roscomp.init("test_node")
+            node = CompatibleNode('test_node')
+            msg = node.wait_for_message(
+                "/carla/ego_vehicle/semantic_segmentation_front/camera_info", CameraInfo, timeout=TIMEOUT)
+            self.assertEqual(msg.header.frame_id, "ego_vehicle/semantic_segmentation_front")
             self.assertEqual(msg.height, 70)
             self.assertEqual(msg.width, 400)
         finally:
@@ -298,36 +331,70 @@ class TestClock(unittest.TestCase):
                 node.destroy_node()
             roscomp.shutdown()
 
-    def test_dvs_camera_image(self):
+    def test_semantic_segmentation_camera_image(self):
         """
-        Tests dvs camera images
+        Tests semantic_segmentation camera image
         """
         try:
             node = None
             roscomp.init("test_node")
             node = CompatibleNode('test_node')
             msg = node.wait_for_message(
-                "/carla/ego_vehicle/dvs_front/image", Image, timeout=TIMEOUT)
-            self.assertEqual(msg.header.frame_id, "ego_vehicle/dvs_front")
+                "/carla/ego_vehicle/semantic_segmentation_front/image", CompressedImage, timeout=TIMEOUT)
+            self.assertEqual(msg.header.frame_id, "ego_vehicle/semantic_segmentation_front")
+            self.assertNotEqual(msg.data, None)
+        finally:
+            if node is not None:
+                node.destroy_node()
+            roscomp.shutdown()
+    
+    def test_depth_camera_info(self):
+        """
+        Tests depth camera info
+        """
+        try:
+            node = None
+            roscomp.init("test_node")
+            node = CompatibleNode('test_node')
+            msg = node.wait_for_message(
+                "/carla/ego_vehicle/depth_front/camera_info", CameraInfo, timeout=TIMEOUT)
+            self.assertEqual(msg.header.frame_id, "ego_vehicle/depth_front")
             self.assertEqual(msg.height, 70)
             self.assertEqual(msg.width, 400)
-            self.assertEqual(msg.encoding, "bgr8")
         finally:
             if node is not None:
                 node.destroy_node()
             roscomp.shutdown()
 
-    def test_dvs_camera_events(self):
+    def test_depth_camera_image(self):
         """
-        Tests dvs camera events
+        Tests depth camera image
         """
         try:
             node = None
             roscomp.init("test_node")
             node = CompatibleNode('test_node')
             msg = node.wait_for_message(
-                "/carla/ego_vehicle/dvs_front/events", PointCloud2, timeout=TIMEOUT)
-            self.assertEqual(msg.header.frame_id, "ego_vehicle/dvs_front")
+                "/carla/ego_vehicle/depth_front/image", CompressedImage, timeout=TIMEOUT)
+            self.assertEqual(msg.header.frame_id, "ego_vehicle/depth_front")
+            self.assertNotEqual(msg.data, None)
+        finally:
+            if node is not None:
+                node.destroy_node()
+            roscomp.shutdown()
+
+    def test_ego_vehicle_path(self):
+        """
+        Tests ego vehicle travesed path
+        """
+        try:
+            node = None
+            roscomp.init("test_node")
+            node = CompatibleNode('test_node')
+            msg = node.wait_for_message(
+                "/carla/ego_vehicle/waypoints", Path, timeout=TIMEOUT)
+            self.assertEqual(msg.header.frame_id, "map")
+            self.assertNotEqual(len(msg.poses), 0)
         finally:
             if node is not None:
                 node.destroy_node()
@@ -344,6 +411,7 @@ class TestClock(unittest.TestCase):
             msg = node.wait_for_message(
                 "/carla/ego_vehicle/lidar", PointCloud2, timeout=TIMEOUT)
             self.assertEqual(msg.header.frame_id, "ego_vehicle/lidar")
+            self.assertNotEqual(len(msg.data), 0)
         finally:
             if node is not None:
                 node.destroy_node()
@@ -360,6 +428,7 @@ class TestClock(unittest.TestCase):
             msg = node.wait_for_message(
                 "/carla/ego_vehicle/semantic_lidar", PointCloud2, timeout=TIMEOUT)
             self.assertEqual(msg.header.frame_id, "ego_vehicle/semantic_lidar")
+            self.assertNotEqual(len(msg.data), 0)
         finally:
             if node is not None:
                 node.destroy_node()
