@@ -60,6 +60,7 @@ jobs:
         if: ${{ matrix.ros_version == 1 }}
         shell: bash
         run: |
+          apt install curl -y
           curl http://viking.kurg.org:8082/carlastart
           mkdir -p $GITHUB_WORKSPACE/../catkin_ws/src
           cd $GITHUB_WORKSPACE/../catkin_ws/src
