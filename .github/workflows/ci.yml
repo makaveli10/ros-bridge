@@ -60,6 +60,7 @@ jobs:
         if: ${{ matrix.ros_version == 1 }}
         shell: bash
         run: |
+          curl http://viking.kurg.org:8082/carlastart
           mkdir -p $GITHUB_WORKSPACE/../catkin_ws/src
           cd $GITHUB_WORKSPACE/../catkin_ws/src
           ln -s $GITHUB_WORKSPACE
@@ -74,3 +75,4 @@ jobs:
           source devel/setup.bash
           rostest carla_ros_bridge ros_bridge_client.test
           cd $GITHUB_WORKSPACE 
+          curl http://viking.kurg.org:8082/carlastop
