@@ -374,7 +374,7 @@ class CarlaRosBridge(CompatibleNode):
         if self.lidar_to_camera is None:
             self.lidar_to_camera = LidarToRGB()
     
-    def publish_bboxes_and_lidar_overlay(self, resized_width=416):
+    def publish_bboxes_and_lidar_overlay(self):
         """Publishes bboxes and lidar overlay RGB.
         """
         if self.n_rgb_cams != len(self.carla_world.get_actors().filter('sensor.camera.rgb')) or \
@@ -448,14 +448,8 @@ class CarlaRosBridge(CompatibleNode):
                 # get header msg 
                 header = rgb_cam.get_msg_header()
 
-                # resize image
-                (h, w) = img.shape[:2]
-                r = resized_width / float(w)
-                dim = (resized_width, int(h * r))
-                resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
-
                 # publish bboxes
-                img_msg_bboxes_lidar = Camera.cv_bridge.cv2_to_compressed_imgmsg(resized)
+                img_msg_bboxes_lidar = Camera.cv_bridge.cv2_to_compressed_imgmsg(img)
                 img_msg_bboxes_lidar.header = header
                 try:
                     self.boxes_lidar_publishers[parent][id_].publish(img_msg_bboxes_lidar)
