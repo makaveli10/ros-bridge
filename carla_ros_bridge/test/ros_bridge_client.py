@@ -18,7 +18,7 @@ from std_msgs.msg import Header, String
 from rosgraph_msgs.msg import Clock
 from sensor_msgs.msg import CameraInfo, NavSatFix, CompressedImage, PointCloud2, Imu
 from geometry_msgs.msg import Quaternion, Vector3, Pose
-from nav_msgs.msg import Odometry
+from nav_msgs.msg import Odometry, Path
 from derived_object_msgs.msg import ObjectArray
 from visualization_msgs.msg import Marker, MarkerArray
 from carla_msgs.msg import (CarlaEgoVehicleStatus, CarlaEgoVehicleInfo, CarlaWorldInfo,
@@ -198,6 +198,16 @@ class TestClock(unittest.TestCase):
             "/carla/ego_vehicle/depth_front/image", CompressedImage, timeout=TIMEOUT)
         self.assertEqual(msg.header.frame_id, "ego_vehicle/depth_front")
         self.assertNotEqual(msg.data, None)
+
+    def test_ego_vehicle_path(self):
+        """
+        Tests ego vehicle travesed path
+        """
+        rospy.init_node('test_node', anonymous=True)
+        msg = rospy.wait_for_message(
+            "/carla/ego_vehicle/waypoints", Path, timeout=TIMEOUT)
+        self.assertEqual(msg.header.frame_id, "map")
+        self.assertNotEqual(len(msg.poses), 0)
 
     def test_lidar(self):
         """
