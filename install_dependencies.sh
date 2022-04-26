@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PYTHON_SUFFIX="3"
 
 # for map server
@@ -35,4 +35,4 @@ sudo apt-get install --no-install-recommends -y \
     $ADDITIONAL_PACKAGES
 
 python3 -m pip install --upgrade pip
-python3 -m pip install -r /opt/carla-ros-bridge/requirements.txt
+python$PYTHON_SUFFIX -m pip install -r $SCRIPT_DIR/requirements.txt
