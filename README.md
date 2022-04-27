@@ -48,7 +48,7 @@ Besides, you can also use the ros-bridge without Carlafox.
 
 - Build docker image with ROS1/ROS2
 ```bash
- docker build -t carla-ros . --build-arg ROS_DISTRO=noetic
+ docker build -t carlafox .
 ```
 
 - Start the CARLA server
@@ -65,7 +65,7 @@ Besides, you can also use the ros-bridge without Carlafox.
 ```bash
  docker exec -it "container_id" bash
  cd /opt/carla-ros-bridge
- source ./install/setup.bash
+ source ./devel/setup.bash
 ```
 
 - Run Ego Vehicle example

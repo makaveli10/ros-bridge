@@ -1,12 +1,9 @@
-
 import launch
 
 from launch import LaunchDescription
 from launch_ros.actions import Node
 
-
 def generate_launch_description():
-
     ld = LaunchDescription([
         Node(
             package='nav2_map_server',
