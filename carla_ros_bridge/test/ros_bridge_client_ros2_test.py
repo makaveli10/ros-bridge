@@ -36,7 +36,7 @@ def generate_test_description():
     ld = launch.LaunchDescription([
         launch.actions.DeclareLaunchArgument(
             name='host',
-            default_value='carla'
+            default_value='viking.kurg.org'
         ),
         launch.actions.DeclareLaunchArgument(
             name='port',
