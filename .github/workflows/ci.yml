@@ -59,7 +59,7 @@ jobs:
           # colcon test && colcon test-result
           source install/setup.bash
           ls
-          launch_test src/carla_ros_bridge/test/ros_bridge_client_ros2_test.py
+          launch_test carla_ros_bridge/test/ros_bridge_client_ros2_test.py
           curl http://viking.kurg.org:8082/carlastop
       - name: ROS1 Build, Test, Lint
         if: ${{ matrix.ros_version == 1 }}
