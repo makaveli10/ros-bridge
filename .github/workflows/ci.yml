@@ -3,8 +3,6 @@ name: Run tests
 on: [push, pull_request]
 
 jobs:
-  strategy:
-    max-parallel: 1
   check:
     runs-on: ubuntu-20.04
     steps:
@@ -23,6 +21,7 @@ jobs:
   ros:
     runs-on: ubuntu-20.04
     strategy:
+      max-parallel: 1
       matrix:
         include:
             - docker_image: noetic-robot
