@@ -99,15 +99,6 @@ def generate_test_description():
                 'fixed_delta_seconds': launch.substitutions.LaunchConfiguration('fixed_delta_seconds')
             }.items()
         ),
-        launch.actions.IncludeLaunchDescription(
-            launch.launch_description_sources.PythonLaunchDescriptionSource(
-                os.path.join(get_package_share_directory(
-                    'carla_spawn_objects'), 'carla_spawn_objects.launch.py')
-            ),
-            launch_arguments={
-                'objects_definition_file': launch.substitutions.LaunchConfiguration('objects_definition_file')
-            }.items()
-        ),
         # Start tests
         launch_testing.actions.ReadyToTest()
     ])
@@ -446,6 +437,64 @@ class TestClock(unittest.TestCase):
             msg = node.wait_for_message(
                 "/carla/ego_vehicle/radar_front", PointCloud2, timeout=TIMEOUT)
             self.assertEqual(msg.header.frame_id, "ego_vehicle/radar_front")
+        finally:
+            if node is not None:
+                node.destroy_node()
+            roscomp.shutdown()
+    
+    def test_ego_vehicle_objects(self):
+        """
+        Tests objects node for ego_vehicle
+        """
+        try:
+            node = None
+            roscomp.init("test_node")
+            node = CompatibleNode('test_node')
+            msg = node.wait_for_message(
+                "/carla/ego_vehicle/objects", ObjectArray, timeout=15)
+            self.assertEqual(msg.header.frame_id, "map")
+            self.assertEqual(len(msg.objects), 0)
+        finally:
+            if node is not None:
+                node.destroy_node()
+            roscomp.shutdown()
+
+    def test_objects(self):
+        """
+        Tests carla objects
+        """
+        try:
+            node = None
+            roscomp.init("test_node")
+            node = CompatibleNode('test_node')
+            msg = node.wait_for_message("/carla/objects", ObjectArray, timeout=TIMEOUT)
+            self.assertEqual(msg.header.frame_id, "map")
+            self.assertEqual(len(msg.objects), 1)  # only ego vehicle exists
+        finally:
+            if node is not None:
+                node.destroy_node()
+            roscomp.shutdown()
+
+    def test_marker(self):
+        """
+        Tests marker
+        """
+        try:
+            node = None
+            roscomp.init("test_node")
+            node = CompatibleNode('test_node')
+            msg = node.wait_for_message("/carla/markers", MarkerArray, timeout=TIMEOUT)
+            self.assertEqual(len(msg.markers), 1)  # only ego vehicle exists
+
+            ego_marker = msg.markers[0]
+            self.assertEqual(ego_marker.header.frame_id, "map")
+            self.assertNotEqual(ego_marker.id, 0)
+            self.assertEqual(ego_marker.type, 1)
+            self.assertNotEqual(ego_marker.pose, Pose())
+            self.assertNotEqual(ego_marker.scale, Vector3())
+            self.assertEqual(ego_marker.color.r, 0.0)
+            self.assertEqual(ego_marker.color.g, 255.0)
+            self.assertEqual(ego_marker.color.b, 0.0)
         finally:
             if node is not None:
                 node.destroy_node()
