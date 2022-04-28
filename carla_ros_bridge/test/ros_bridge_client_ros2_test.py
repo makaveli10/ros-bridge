@@ -96,7 +96,7 @@ def generate_test_description():
                 'passive': launch.substitutions.LaunchConfiguration('passive'),
                 'synchronous_mode': launch.substitutions.LaunchConfiguration('synchronous_mode'),
                 'synchronous_mode_wait_for_vehicle_control_command': launch.substitutions.LaunchConfiguration('synchronous_mode_wait_for_vehicle_control_command'),
-                'fixed_delta_seconds': launch.substitutions.LaunchConfiguration('fixed_delta_seconds')
+                'fixed_delta_seconds': launch.substitutions.LaunchConfiguration('fixed_delta_seconds'),
                 'objects_definition_file': launch.substitutions.LaunchConfiguration('objects_definition_file')
             }.items()
         ),
