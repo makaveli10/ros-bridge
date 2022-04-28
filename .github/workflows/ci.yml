@@ -52,6 +52,7 @@ jobs:
         if: ${{ matrix.ros_version == 2 }}
         shell: bash
         run: |
+          apt install curl -y
           curl http://viking.kurg.org:8082/carlastart
           source /opt/ros/$(rosversion -d)/setup.bash
           colcon build --continue-on-error
