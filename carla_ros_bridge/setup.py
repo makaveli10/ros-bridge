@@ -26,6 +26,8 @@ elif ROS_VERSION == 2:
                     (os.path.join('share', package_name), glob('launch/*.launch.py')),
                     (os.path.join('share', package_name), glob('launch/*.xml')),
                     (os.path.join('share', package_name), glob('config/*')),
+                    (os.path.join('share', package_name + '/test'), glob('test/ros_bridge_client_ros2_test.py')),
+                    (os.path.join('share', package_name + '/test'), glob('test/settings.yaml')),
                     (os.path.join('share', package_name + '/test'), glob('test/test_objects.json'))],
         install_requires=['setuptools'],
         zip_safe=True,
