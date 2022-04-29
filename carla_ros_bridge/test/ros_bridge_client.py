@@ -167,7 +167,7 @@ class TestClock(unittest.TestCase):
         self.assertEqual(msg.header.frame_id, "ego_vehicle/semantic_segmentation_front")
         self.assertEqual(msg.height, 70)
         self.assertEqual(msg.width, 400)
-    
+
     def test_semantic_segmentation_camera_image(self):
         """
         Tests semantic segmentation camera images

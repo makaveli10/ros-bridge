@@ -339,7 +339,7 @@ class TestClock(unittest.TestCase):
             if node is not None:
                 node.destroy_node()
             roscomp.shutdown()
-    
+
     def test_depth_camera_info(self):
         """
         Tests depth camera info
@@ -442,7 +442,7 @@ class TestClock(unittest.TestCase):
             if node is not None:
                 node.destroy_node()
             roscomp.shutdown()
-    
+
     def test_ego_vehicle_objects(self):
         """
         Tests objects node for ego_vehicle
