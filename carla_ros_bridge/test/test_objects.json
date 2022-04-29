@@ -154,7 +154,7 @@
                 },
                 {
                     "type": "sensor.camera.semantic_segmentation",
-                    "id": "semantic_segmentation_front",
+                    "id": "semantic_segmentation_back",
                     "spawn_point": {"x": 2.0, "y": 0.0, "z": 2.0, "roll": 0.0, "pitch": 0.0, "yaw": 0.0},
                     "fov": 90.0,
                     "image_size_x": 400,
@@ -169,7 +169,7 @@
                 },
                 {
                     "type": "sensor.camera.depth",
-                    "id": "depth_front",
+                    "id": "depth_front_back",
                     "spawn_point": {"x": 2.0, "y": 0.0, "z": 2.0, "roll": 0.0, "pitch": 0.0, "yaw": 0.0},
                     "fov": 90.0,
                     "image_size_x": 400,
