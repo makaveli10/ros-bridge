@@ -1,0 +1,10 @@
+@@ -174,7 +174,8 @@
+                 callback(outgoing)
+             except Exception as exc:
+                 # Do nothing if one particular callback fails except log it
+-                logerr("Exception calling subscribe callback: %s", exc)
++                # logerr("Exception calling subscribe callback: %s", exc)
++                pass
+ 
+ 
+ class SubscriberManager():
