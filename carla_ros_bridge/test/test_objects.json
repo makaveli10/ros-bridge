@@ -183,21 +183,6 @@
                     "lens_y_size": 0.08
                 },
                 {
-                    "type": "sensor.camera.dvs",
-                    "id": "dvs_front",
-                    "spawn_point": {"x": 2.0, "y": 0.0, "z": 2.0, "roll": 0.0, "pitch": 0.0, "yaw": 0.0},
-                    "fov": 90.0,
-                    "image_size_x": 400,
-                    "image_size_y": 70,
-                    "sensor_tick": 0.05,
-                    "positive_threshold": 0.3,
-                    "negative_threshold": 0.3,
-                    "sigma_positive_threshold": 0.0,
-                    "sigma_negative_threshold": 0.0,
-                    "use_log": true,
-                    "log_eps": 0.001
-                },
-                {
                     "type": "sensor.other.gnss",
                     "id": "gnss",
                     "spawn_point": {"x": 1.0, "y": 0.0, "z": 2.0},
