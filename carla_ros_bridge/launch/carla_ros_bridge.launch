@@ -1,8 +1,13 @@
 <!-- -->
 <launch>
+  <!-- websocket ports (when run behind a proxy) -->
+  <arg name="websocket_port" default="9090"/>
+  <!-- websocket port visible when running behind a proxy -->
+  <arg name="websocket_external_port" default="$(arg websocket_port)"/>
+
   <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" > 
-     <arg name="port" value="9090"/>
-     <arg name="websocket_external_port" value="8080"/>
+    <arg name="port" value="$(arg websocket_port)"/>
+    <arg name="websocket_external_port" value="$(arg websocket_external_port)"/>
   </include>
   <!-- global parameter to set CARLA as time source -->
   <param name="use_sim_time" value="True"/>
