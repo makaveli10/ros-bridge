@@ -19,6 +19,11 @@ COPY . /opt/carla-ros-bridge/src
 RUN /bin/bash -c 'source /opt/ros/$ROS_DISTRO/setup.bash ; \
                   if [ "$ROS_VERSION" == "2" ]; then colcon build; else catkin_make install; fi'
 
+# ROS1 patch harmless exception (overflowing logs) :
+# Exception calling subscribe callback: 'Clock' object has no attribute ‘_buff’
+RUN /bin/bash -c 'if [ "$ROS_VERSION" == "1" ]; then patch /opt/ros/noetic/lib/python3/dist-packages/rosbridge_library/internal/subscribers.py \
+                  /opt/carla-ros-bridge/src/patchfile.patch; else : ; fi'
+
 COPY ./config/default /etc/nginx/sites-enabled
 
 WORKDIR /studio
