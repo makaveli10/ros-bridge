@@ -34,9 +34,9 @@ Apart from that we added some new features and updates:
 Autonomous vehicles require large-scale development and testing in a wide range of scenarios before they can be deployed. Moreover, huge amounts of data is required to train models for planning and perception which can be costly and time consuming. To solve the problem, simulated datasets from the CARLA simulater can be a great solution but still could be time consuming and might require diligence to validate the data gathering process.
 
 ## CarlaFox
-We implemented [Carlafox](https://github.com/jpc/carlafox) - a web-based CARLA visualizer that can combine a number of ROS topics message streams including support for text and custom shapes in one single visualization to solve the problem of monitoring the data gathering process.
+We implemented [Carlafox](https://github.com/collabora/carlafox) - a web-based CARLA visualizer that can combine a number of ROS topics message streams including support for text and custom shapes in one single visualization to solve the problem of monitoring the data gathering process or testing your perception/planning models.
 
-Carlafox eradicates the hassle of using the ros-bridge with CARLA and adds FoxGlove Visualation on top of that. Instead of following intricate steps like running CARLA server, starting the ros-bridge and finally starting FoxGlove or any other visualization tool, Carlfox brings it down to one simple ```docker-compose``` to pull everything together and make it a lot easier to get started.
+Carlafox eradicates the hassle of using the ros-bridge with CARLA and adds FoxGlove Visualization on top of that. Instead of following intricate steps like running CARLA server, starting the ros-bridge and finally, starting FoxGlove or any other visualization tool. Carlafox pulls everything together and make it a lot easier to get started.
 
 ## ROS Bridge & CARLA
 Besides, you can also use the ros-bridge without Carlafox. 
@@ -48,7 +48,8 @@ Besides, you can also use the ros-bridge without Carlafox.
 
 - Build docker image with ROS1/ROS2
 ```bash
- docker build -t carlafox .
+ docker build -t carlafox . --build-arg ROS_DISTRO=noetic
+                                        ROS_DISTRO=foxy
 ```
 
 - Start the CARLA server
@@ -58,7 +59,7 @@ Besides, you can also use the ros-bridge without Carlafox.
 
 - Start carla-ros docker container
 ```bash
- docker run -it -d -p 9090:9090 -p 8080:8080 carla-ros
+ docker run -it -d -p 9090:9090 carlafox
 ```
 
 - Setup ROS environment
@@ -84,7 +85,7 @@ Besides, you can also use the ros-bridge without Carlafox.
 ```
 *NOTE*: Another client must ```tick()``` otherwise carla-ros-bridge will freeze.
 
-- The bridge publishes all topics data on ```websocket://9090```. Use [FoxGlove Studio](https://github.com/foxglove/studio)/[Webviz](https://github.com/cruise-automation/webviz) on ```websocket://9090``` with the ```foxglove_layout.json``` layout file provided in this repository to visualize the simulation data.
+- The bridge publishes all topics data on ```websocket://9090```. Use [FoxGlove Studio](https://github.com/foxglove/studio)/[Webviz](https://github.com/cruise-automation/webviz) on ```websocket://9090``` with the ```foxglove_layout.json``` layout file provided in this repository or create your own custom layout to visualize the simulation data.
 
 
 # Resources
