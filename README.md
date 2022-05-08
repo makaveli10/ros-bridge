@@ -1,8 +1,7 @@
 The ROS bridge package is a bridge that enables two-way communication between ROS and CARLA. The information from the CARLA server is translated to ROS topics and thus can be visualized in various visualization tools e.g. [FoxGlove Studio](https://github.com/foxglove/studio). This bridge can be used to setup and monitor a CARLA environment for simulated dataset generation for perception systems, image synthesis, and automatic ground truth data generation or testing the trained models.
 
 
-<img src="docs/images/demo1.png" width="800"/>
-
+<img src="docs/images/layout.png" width="800"/>
 
 # What is ROS?
 The Robot Operating System (ROS) is a set of software libraries and tools that help you build robot applications. Most Robots are made up of actuators, sensors, and control systems. ROS provides a standard way to visualize and connect all your sensors (cameras, distance sensors, analog to digital converters, IMU) together with the control software that makes the decisions.
@@ -11,7 +10,6 @@ ROS helps developers quickly build these components and easily connect them usin
 
 # ROS with CARLA
 CARLA is an open-source simulator for autonomous driving research. The simulator provides API to spawn vehicles into the CARLA world, which can be controlled by custom models or via autopilot. Moreover, it comes with various maps of different environments like countryside roads or urban areas. It also provides methods to change weather conditions like time of day, precipitation, etc.
-
 
 ## ROS bridge Sensors & our additions
 CARLA simulator provides methods to attach multiple sensors to CARLA vehicles(actors) like RGB cameras, semantic segmentation camera, depth camera, IMU, LiDAR, semantic LiDAR. It also allows simulating custom traffic scenarios.
@@ -31,17 +29,13 @@ Apart from that, we added some new features and updates:
 - Added support to publish ego vehicle traversed path as ```nav_msgs/Path``` which itself is a list of waypoints ```geometry_msgs/PoseStamped```.
 - Added a separate ROS topic that publishes RGB camera images with 3D Bounding boxes and LiDAR points overlaid.
 
-
 # How to use
 Autonomous vehicles require large-scale development and testing in a wide range of scenarios before they can be deployed. Moreover, huge amounts of data are required to train models for planning and perception, which can be costly and time consuming. To solve the problem, simulated datasets from the CARLA simulator can be a great solution but still could be time-consuming and might require diligence to validate the data gathering process.
-
 
 ## CarlaFox
 We implemented [Carlafox](https://github.com/collabora/carlafox) - a web-based CARLA visualizer that can combine a number of ROS topics message streams, including support for text and custom shapes in one single visualization to solve the problem of monitoring the data gathering process or testing your perception/planning models.
 
-
 Carlafox eradicates the hassle of using the ros-bridge with CARLA and adds FoxGlove Visualization on top of that. Instead of following intricate steps like running CARLA server, starting the ros-bridge, and finally, starting FoxGlove or any other visualization tool. Carlafox pulls everything together and makes it a lot easier to get started.
-
 
 ## ROS Bridge & CARLA
 Besides, you can also use the ros-bridge without Carlafox. 
@@ -53,8 +47,7 @@ Besides, you can also use the ros-bridge without Carlafox.
 
 - Build docker image with ROS1/ROS2
 ```bash
- docker build -t carlafox . --build-arg ROS_DISTRO=noetic
-                                        ROS_DISTRO=foxy
+ docker build -t carlafox . --build-arg ROS_DISTRO=noetic ROS_DISTRO=foxy
 ```
 
 - Start the CARLA server
@@ -91,7 +84,6 @@ Besides, you can also use the ros-bridge without Carlafox.
 *NOTE*: Another client must ```tick()``` otherwise carla-ros-bridge will freeze.
 
 - The bridge publishes all topics data on ```websocket://9090```. Use [FoxGlove Studio](https://github.com/foxglove/studio)/[Webviz](https://github.com/cruise-automation/webviz) on ```websocket://9090``` with the ```foxglove_layout.json``` layout file provided in this repository or create your own custom layout to visualize the simulation data.
-
 
 # Resources
 - [CARLA simulator](https://carla.readthedocs.io/en/latest/)
