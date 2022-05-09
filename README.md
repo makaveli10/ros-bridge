@@ -1,7 +1,8 @@
 The ROS bridge package is a bridge that enables two-way communication between ROS and CARLA. The information from the CARLA server is translated to ROS topics and thus can be visualized in various visualization tools e.g. [FoxGlove Studio](https://github.com/foxglove/studio). This bridge can be used to setup and monitor a CARLA environment for simulated dataset generation for perception systems, image synthesis, and automatic ground truth data generation or testing the trained models.
 
-
-<img src="docs/images/layout.png" width="800"/>
+<p align="center">
+    <img src="docs/images/layout.png" width="800">
+</p>
 
 # What is ROS?
 The Robot Operating System (ROS) is a set of software libraries and tools that help you build robot applications. Most Robots are made up of actuators, sensors, and control systems. ROS provides a standard way to visualize and connect all your sensors (cameras, distance sensors, analog to digital converters, IMU) together with the control software that makes the decisions.
