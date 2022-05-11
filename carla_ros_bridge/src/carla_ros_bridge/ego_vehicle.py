@@ -99,8 +99,6 @@ class EgoVehicle(Vehicle):
             self.enable_autopilot_updated,
             qos_profile=10)
         
-        self.carla_actor.set_autopilot(True)
-
         # waypoint stuff
         self.map = self.node.carla_world.get_map()
         self.waypoint_publisher = node.new_publisher(
@@ -108,7 +106,6 @@ class EgoVehicle(Vehicle):
             self.get_topic_prefix() + "/waypoints",
             QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
         
-        # TODO: make this a queue to have limited waypoints
         self.current_route = deque(maxlen=150)
     
     def update_ego_route(self, frame, timestamp):
