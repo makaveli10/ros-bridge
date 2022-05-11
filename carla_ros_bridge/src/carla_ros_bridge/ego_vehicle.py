@@ -106,7 +106,6 @@ class EgoVehicle(Vehicle):
             self.get_topic_prefix() + "/waypoints",
             QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
         
-        # TODO: make this a queue to have limited waypoints
         self.current_route = deque(maxlen=150)
     
     def update_ego_route(self, frame, timestamp):
