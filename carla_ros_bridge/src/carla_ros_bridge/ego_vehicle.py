@@ -99,8 +99,6 @@ class EgoVehicle(Vehicle):
             self.enable_autopilot_updated,
             qos_profile=10)
         
-        self.carla_actor.set_autopilot(True)
-
         # waypoint stuff
         self.map = self.node.carla_world.get_map()
         self.waypoint_publisher = node.new_publisher(

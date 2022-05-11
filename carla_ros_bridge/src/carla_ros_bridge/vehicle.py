@@ -57,6 +57,7 @@ class Vehicle(TrafficParticipant):
                                       parent=parent,
                                       node=node,
                                       carla_actor=carla_actor)
+        self.carla_actor.set_autopilot(True)
 
     def get_marker_color(self):  # pylint: disable=no-self-use
         """
