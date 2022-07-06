@@ -5,6 +5,7 @@ on:
     branches:
       - sfa3d_trt
 
+
 jobs:
   docker:
     name: Publish to GHCR
