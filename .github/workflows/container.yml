@@ -3,8 +3,7 @@ name: Build container images
 on:
   push:
     branches:
-      - sfa3d_trt
-
+      - jpc/compose
 
 jobs:
   docker:
@@ -19,7 +18,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          ref: sfa3d_trt
+          ref: jpc/compose
           lfs: true
           submodules: 'recursive'
 
