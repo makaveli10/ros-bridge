@@ -1,6 +1,21 @@
+FROM nvcr.io/nvidia/tensorrt:22.01-py3
 ARG ROS_DISTRO=noetic
 
-FROM ros:$ROS_DISTRO-ros-base
+# setup timezone
+RUN echo 'Etc/UTC' > /etc/timezone && \
+    ln -s /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
+    apt-get update && \
+    apt-get install -q -y --no-install-recommends tzdata && \
+    rm -rf /var/lib/apt/lists/*
+
+# install packages
+RUN apt-get update && apt-get install -q -y --no-install-recommends \
+    dirmngr \
+    gnupg2 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY ./docker/build.sh /tmp/  
+RUN chmod u+x /tmp/build.sh && /tmp/build.sh $ROS_DISTRO
 
 # setup ros bridge
 RUN mkdir -p /opt/carla-ros-bridge/src
@@ -17,11 +32,11 @@ RUN /bin/bash -c 'source /opt/ros/$ROS_DISTRO/setup.bash; \
 COPY . /opt/carla-ros-bridge/src
 
 RUN /bin/bash -c 'source /opt/ros/$ROS_DISTRO/setup.bash ; \
-                  if [ "$ROS_VERSION" == "2" ]; then colcon build; else catkin_make install; fi'
+                  if [ "$ROS_DISTRO" == "foxy" ]; then colcon build; else catkin_make install; fi'
 
 # ROS1 patch harmless exception (overflowing logs) :
 # Exception calling subscribe callback: 'Clock' object has no attribute ‘_buff’
-RUN /bin/bash -c 'if [ "$ROS_VERSION" == "1" ]; then patch /opt/ros/noetic/lib/python3/dist-packages/rosbridge_library/internal/subscribers.py \
+RUN /bin/bash -c 'if [ "$ROS_DISTRO" == "noetic" ]; then patch /opt/ros/noetic/lib/python3/dist-packages/rosbridge_library/internal/subscribers.py \
                   /opt/carla-ros-bridge/src/patchfile.patch; else : ; fi'
 
 COPY ./config/default /etc/nginx/sites-enabled
