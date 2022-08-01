@@ -34,13 +34,14 @@ from carla_ros_bridge.sfa3d_helper import _sigmoid, get_filtered_lidar, decode, 
 class FPNResnet18TRT:
     """FPN Resnet18 TensorRT inference utility class.
     """
-    def __init__(self, node, engine_path: str=None, onnx_path: str=None):
+    def __init__(self, node, engine_path: str=None, onnx_path: str=None, fp16: bool=False):
         """Initialize.
 
         Args:
             node: CarlaRosBridge object for logging
             engine_path: tensorrt engine file path
             onnx_path: onnx model path
+            fp16: boolean for tensorrt fp16 quantization
         """
         self.node = node
 
@@ -48,6 +49,7 @@ class FPNResnet18TRT:
         self._ctx = cuda.Device(0).make_context()
         self._logger = trt.Logger(trt.Logger.INFO)
         self._stream = cuda.Stream()
+        self._fp16 = fp16
 
         # initiate engine related class attributes
         self._engine = None
@@ -138,7 +140,7 @@ class FPNResnet18TRT:
                 "[Error] Couldn't create execution context from engine successfully !")
 
     def _build_and_serialize_engine(
-        self, onnx_path: str, fp16: bool=False) -> trt.tensorrt.ICudaEngine:
+        self, onnx_path: str) -> trt.tensorrt.ICudaEngine:
         """Builds TensorRT engine from ONNX model, serialized the
         engine and saves it.
 
@@ -158,10 +160,7 @@ class FPNResnet18TRT:
             raise FileNotFoundError(
                 f"[Error] {onnx_path} does not exists.")
 
-        # TODO: fix this
-        trt_engine_path = os.path.join(
-            '/'.join(onnx_path.split('/')[:-1]),
-            onnx_path.split('/')[-1].replace("onnx", "engine"))
+        trt_engine_path = onnx_path.replace("onnx", "engine")
 
         # Check if onnx_path is valid.
         if ".onnx" not in onnx_path:
@@ -184,11 +183,10 @@ class FPNResnet18TRT:
             builder.max_batch_size = 1
 
             # FP16 quantization
-            if builder.platform_has_fast_fp16 and fp16:
-                trt_engine_path = trt_engine_path.replace('.engine', '_fp16.engine')
+            if builder.platform_has_fast_fp16 and self._fp16:
+                self.node.loginfo("[INFO] Platform has FP16 support. Setting FP16 to true.")
                 config.flags = 1 << (int)(trt.BuilderFlag.FP16)
-            else:
-                trt_engine_path = trt_engine_path.replace('.engine', '_fp32.engine')
+
             if os.path.exists(trt_engine_path):
                 self.node.loginfo(f"{trt_engine_path} already exists.")
                 return self._deserialize_engine(trt_engine_path)
@@ -227,7 +225,10 @@ class FPNResnet18TRT:
 
         # copy inputs to input memory
         # without astype gives invalid arg error
-        self._inputs[0]['host'] = np.ravel(inputs).astype(np.float32)
+        if self._fp16:
+            self._inputs[0]['host'] = np.ravel(inputs).astype(np.float16)
+        else:
+            self._inputs[0]['host'] = np.ravel(inputs).astype(np.float32)
 
         # transfer data to the gpu
         t1 = time.time()
@@ -273,7 +274,7 @@ class FPNResnet18TRT:
         Returns:
             output image if detections > 0 else None
         """
-        outputs = [torch.from_numpy(output.reshape((1,-1,152,152))) for output in trt_outputs]
+        outputs = [torch.from_numpy(output.reshape((1,-1,152,152))).float() for output in trt_outputs]
         outputs[0] = _sigmoid(outputs[0])
         outputs[1] = _sigmoid(outputs[1])
 
