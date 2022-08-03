@@ -39,6 +39,12 @@ RUN /bin/bash -c 'source /opt/ros/$ROS_DISTRO/setup.bash ; \
 RUN /bin/bash -c 'if [ "$ROS_DISTRO" == "noetic" ]; then patch /opt/ros/noetic/lib/python3/dist-packages/rosbridge_library/internal/subscribers.py \
                   /opt/carla-ros-bridge/src/patchfile.patch; else : ; fi'
 
+# download perception models
+RUN /bin/bash -c 'gdown --fuzzy https://drive.google.com/file/d/1UwQnp5vQMEXIyx26KG2N4-6M-ekOHPsq/view?usp=sharing \
+                 -O /opt/carla-ros-bridge/src/carla_ros_bridge/config/'
+RUN /bin/bash -c 'gdown --fuzzy https://drive.google.com/file/d/1m4RYIJbbSbz2ODI_pKMGGf0h4tAeNZqF/view?usp=sharing \
+                 -O /opt/carla-ros-bridge/src/carla_ros_bridge/config/'
+
 COPY ./config/default /etc/nginx/sites-enabled
 
 WORKDIR /studio
