@@ -25,7 +25,6 @@ from distutils.version import LooseVersion
 from threading import Thread, Lock, Event
 
 import carla
-import cv2
 from geometry_msgs.msg import Pose
 
 from transforms3d.euler import euler2quat
@@ -66,6 +65,7 @@ class CarlaRosBridge(CompatibleNode):
     # wait for this time until a next tick is triggered.
     VEHICLE_CONTROL_TIMEOUT = 1.
     BB_COLOR = (0, 248, 64)
+    BB_COLOR_WALKERS = (0, 255, 255)
 
     def __init__(self):
         """
@@ -408,6 +408,8 @@ class CarlaRosBridge(CompatibleNode):
             self.logwarn("Lidar overlay.. couldnt setup lidar_to_rgb.")
 
         vehicles = self.carla_world.get_actors().filter('vehicle.*')
+        walkers = self.carla_world.get_actors().filter('walker.*')
+
         for parent, rgb_cams in self.rgb_cams.items():
             # check if lidar exists for the same parent
             curr_lidar = None
@@ -417,7 +419,14 @@ class CarlaRosBridge(CompatibleNode):
                 self.logwarn(f"lidar is None for {parent}")
 
             for id_, rgb_cam in rgb_cams.items():
-                bounding_boxes = ClientSideBoundingBoxes.get_bounding_boxes(vehicles, rgb_cam.carla_actor)
+                # filter vehicles & walkers by distance
+                vehicles = ClientSideBoundingBoxes.filter_by_distance(vehicles, rgb_cam.parent.carla_actor)
+                walkers = ClientSideBoundingBoxes.filter_by_distance(walkers, rgb_cam.parent.carla_actor)
+                bounding_boxes = ClientSideBoundingBoxes.get_bounding_boxes(
+                    vehicles, rgb_cam.carla_actor)
+                bounding_boxes_walkers = ClientSideBoundingBoxes.get_bounding_boxes(
+                    walkers, rgb_cam.carla_actor)
+                # bounding_boxes.extend(bounding_boxes_w)
                 img = rgb_cam.get_image()
                 frame = rgb_cam.get_frame()
                 if img is None: continue
@@ -455,25 +464,11 @@ class CarlaRosBridge(CompatibleNode):
                 else:
                     self.logwarn("Lidar Overlay.. couldnt setup lidar_to_camera.")
 
-                # draw bounding boxes
-                for bbox in bounding_boxes:
-                    points = [(int(bbox[i, 0]), int(bbox[i, 1])) for i in range(8)]
-                    # base
-                    cv2.line(img, points[0], points[1], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[0], points[1], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[1], points[2], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[2], points[3], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[3], points[0], CarlaRosBridge.BB_COLOR, thickness=2)
-                    # top
-                    cv2.line(img, points[4], points[5], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[5], points[6], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[6], points[7], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[7], points[4], CarlaRosBridge.BB_COLOR, thickness=2)
-                    # base-top
-                    cv2.line(img, points[0], points[4], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[1], points[5], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[2], points[6], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[3], points[7], CarlaRosBridge.BB_COLOR, thickness=2)
+                # draw vehicle & walker bboxes
+                img = ClientSideBoundingBoxes.draw_bboxes(
+                    bounding_boxes, img, CarlaRosBridge.BB_COLOR)
+                img = ClientSideBoundingBoxes.draw_bboxes(
+                    bounding_boxes_walkers, img, CarlaRosBridge.BB_COLOR_WALKERS)
 
                 # bgr to rgb
                 img = img[:, :, ::-1]
