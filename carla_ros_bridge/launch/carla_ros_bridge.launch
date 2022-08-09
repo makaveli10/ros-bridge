@@ -39,9 +39,12 @@
     (the vehicle from CARLA is selected which has the attribute 'role_name' set to this value)
   -->
   
-  <!--ONNX & Tensorrt model path-->
-  <arg name="onnx_path" default="$(find carla_ros_bridge)/config/fpn_resnet18.onnx"/>
-  <arg name="trt_engine_path" default="$(find carla_ros_bridge)/config/fpn_resnet18_fp32.engine"/>
+  <!--ONNX & Tensorrt config-->
+  <arg name="onnx_path" default="$(find carla_ros_bridge)/config/model3d.onnx"/>
+  <arg name="onnx_path_half" default="$(find carla_ros_bridge)/config/model3d_half.onnx"/>
+  <arg name="trt_engine_path" default="$(find carla_ros_bridge)/config/model3d.engine"/>
+  <arg name="trt_fp16" default="False"/>
+
 
   <arg name="map_file" default="$(find carla_ros_bridge)/config/$(arg town).yaml"/>
 
@@ -64,7 +67,9 @@
     <param name="town" value="$(arg town)"/>
     <param name="ego_vehicle_role_name" value="$(arg ego_vehicle_role_name)"/>
     <param name="onnx_path" value="$(arg onnx_path)"/>
+    <param name="onnx_path_half" value="$(arg onnx_path_half)"/>
     <param name="trt_engine_path" value="$(arg trt_engine_path)"/>
+    <param name="trt_fp16" value="$(arg trt_fp16)"/>
   </node>
 
   <include file="$(find carla_spawn_objects)/launch/carla_example_ego_vehicle.launch">

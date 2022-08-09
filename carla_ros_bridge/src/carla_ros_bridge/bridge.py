@@ -505,7 +505,8 @@ class CarlaRosBridge(CompatibleNode):
         fpn = FPNResnet18TRT(
             self,
             engine_path=self.parameters["trt_engine_path"],
-            onnx_path=self.parameters["onnx_path"])
+            onnx_path=self.parameters["onnx_path_half"] if self.parameters["trt_fp16"] else self.parameters["onnx_path"],
+            fp16=self.parameters["trt_fp16"])
         self.loginfo("Loaded SFA3D TensorRT model for 3D perception.")
         return fpn
 
@@ -712,7 +713,9 @@ def main(args=None):
                                        ["hero", "ego_vehicle", "hero1", "hero2", "hero3"])
     parameters["ego_vehicle"] = {"role_name": role_name}
     parameters["onnx_path"] = carla_bridge.get_param('onnx_path', None)
+    parameters["onnx_path_half"] = carla_bridge.get_param('onnx_path_half', None)
     parameters["trt_engine_path"] = carla_bridge.get_param('trt_engine_path', None)
+    parameters["trt_fp16"] = carla_bridge.get_param('trt_fp16', False)
 
     carla_bridge.loginfo("Trying to connect to {host}:{port}".format(
         host=parameters['host'], port=parameters['port']))
