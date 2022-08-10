@@ -7,6 +7,8 @@
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
 
+import math
+import cv2
 import carla
 
 try:
@@ -129,3 +131,56 @@ class ClientSideBoundingBoxes(object):
         matrix[2, 1] = -c_p * s_r
         matrix[2, 2] = c_p * c_r
         return matrix
+
+    @staticmethod
+    def distance_between_locations(
+        location1: carla.Location, location2:  carla.Location) -> float:
+        """
+        Returns distance between two carla locations.
+        """
+        return math.sqrt(
+            pow(location1.x - location2.x, 2) + pow(location1.y - location2.y, 2)
+        )
+
+    @staticmethod
+    def filter_by_distance(actors, ego_vehicle, threshold_distance=70, env_objects=False):
+        """
+        Remove vehicles that are farther than threshold distance
+        """
+        if env_objects:
+            objects = [
+                actor
+                for actor in actors
+                if ClientSideBoundingBoxes.distance_between_locations(
+                    actor.transform.location, ego_vehicle.get_location()) < threshold_distance
+            ]
+            return objects
+        actors = [
+            actor
+            for actor in actors
+            if ClientSideBoundingBoxes.distance_between_locations(
+                actor.get_location(), ego_vehicle.get_location()) < threshold_distance
+        ]
+        return actors
+
+    @staticmethod
+    def draw_bboxes(bounding_boxes, img, BB_COLOR):
+        for bbox in bounding_boxes:
+            points = [(int(bbox[i, 0]), int(bbox[i, 1])) for i in range(8)]
+            # base
+            cv2.line(img, points[0], points[1], BB_COLOR, thickness=2)
+            cv2.line(img, points[0], points[1], BB_COLOR, thickness=2)
+            cv2.line(img, points[1], points[2], BB_COLOR, thickness=2)
+            cv2.line(img, points[2], points[3], BB_COLOR, thickness=2)
+            cv2.line(img, points[3], points[0], BB_COLOR, thickness=2)
+            # top
+            cv2.line(img, points[4], points[5], BB_COLOR, thickness=2)
+            cv2.line(img, points[5], points[6], BB_COLOR, thickness=2)
+            cv2.line(img, points[6], points[7], BB_COLOR, thickness=2)
+            cv2.line(img, points[7], points[4], BB_COLOR, thickness=2)
+            # base-top
+            cv2.line(img, points[0], points[4], BB_COLOR, thickness=2)
+            cv2.line(img, points[1], points[5], BB_COLOR, thickness=2)
+            cv2.line(img, points[2], points[6], BB_COLOR, thickness=2)
+            cv2.line(img, points[3], points[7], BB_COLOR, thickness=2)
+        return img
