@@ -64,8 +64,8 @@ class CarlaRosBridge(CompatibleNode):
     # in synchronous mode, if synchronous_mode_wait_for_vehicle_control_command is True,
     # wait for this time until a next tick is triggered.
     VEHICLE_CONTROL_TIMEOUT = 1.
-    BB_COLOR = (0, 248, 64)
-    BB_COLOR_WALKERS = (0, 255, 255)
+    BB_COLOR = (92,41,131)
+    BB_COLOR_WALKERS = (64,186,47)
 
     def __init__(self):
         """
