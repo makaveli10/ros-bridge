@@ -15,6 +15,7 @@ import math
 import os
 import numpy as np
 import pkg_resources
+import pycuda.autoinit  # noqa # pylint: disable=unused-import
 
 try:
     import queue
@@ -50,6 +51,7 @@ from carla_ros_bridge.lidar_to_rgb import LidarToRGB
 from carla_ros_bridge.vehicle import Vehicle
 from carla_ros_bridge.tf_sensor import TFSensor
 from carla_ros_bridge.sfa3d_tensorrt import FPNResnet18TRT
+from carla_ros_bridge.traffic_sign_tensorrt import YOLOv7TRT
 
 
 class CarlaRosBridge(CompatibleNode):
@@ -156,6 +158,9 @@ class CarlaRosBridge(CompatibleNode):
             
             # 3d perception model init
             self._model_3d_perception = self.init_tensorrt_model()
+            
+            # traffic sign detection model
+            self._traffic_sign_detector = self.init_traffic_sign_detector()
             self.lidar_height_pos = 1.60
             self.cam0_transform = carla.Transform(
                 carla.Location(x=0.0, y=0, z=self.lidar_height_pos),
@@ -504,6 +509,13 @@ class CarlaRosBridge(CompatibleNode):
             fp16=self.parameters["trt_fp16"])
         self.loginfo("Loaded SFA3D TensorRT model for 3D perception.")
         return fpn
+    
+    def init_traffic_sign_detector(self):
+        model = YOLOv7TRT(
+            self,
+            engine_path=self.parameters["traffic_trt_engine_path"],
+            stream=None)
+        return model
 
     def inference_tensorrt(self, img_rgb, lidar_data, rgb_cam, lidar):
         """
@@ -540,7 +552,8 @@ class CarlaRosBridge(CompatibleNode):
         }
 
         out_img = self._model_3d_perception(img_rgb, p_cloud, calibs)
-        return out_img
+        out_img_traffic = self._traffic_sign_detector(img_rgb)
+        return out_img, out_img_traffic
 
     def _synchronous_mode_update(self):
         """
