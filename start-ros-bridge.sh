@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# install bevfusion
+cd /opt/carla-ros-bridge/src/carla_ros_bridge/src/bevfusion
+python3 setup.py develop
+
 # setup ros environment
 source "/opt/carla-ros-bridge/devel/setup.bash"
 
