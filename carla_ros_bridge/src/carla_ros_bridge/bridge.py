@@ -26,6 +26,7 @@ from threading import Thread, Lock, Event
 
 import carla
 import cv2
+from geometry_msgs.msg import Pose
 
 from transforms3d.euler import euler2quat
 
@@ -49,7 +50,8 @@ from carla_ros_bridge.lidar import Lidar
 from carla_ros_bridge.lidar_to_rgb import LidarToRGB
 from carla_ros_bridge.vehicle import Vehicle
 from carla_ros_bridge.tf_sensor import TFSensor
-from geometry_msgs.msg import Pose
+from carla_ros_bridge.bev import BevFusion
+from carla_common.transforms import carla_rotation_to_quaternion
 
 
 class CarlaRosBridge(CompatibleNode):
@@ -64,7 +66,8 @@ class CarlaRosBridge(CompatibleNode):
     # in synchronous mode, if synchronous_mode_wait_for_vehicle_control_command is True,
     # wait for this time until a next tick is triggered.
     VEHICLE_CONTROL_TIMEOUT = 1.
-    BB_COLOR = (0, 248, 64)
+    BB_COLOR = (92,41,131)
+    BB_COLOR_WALKERS = (64,186,47)
 
     def __init__(self):
         """
@@ -152,11 +155,17 @@ class CarlaRosBridge(CompatibleNode):
                 self.new_subscription(CarlaControl, "/carla/control",
                                       lambda control: self.carla_control_queue.put(control.command),
                                       qos_profile=10, callback_group=self.callback_group)
-            
+
+            self.bevfusion = BevFusion(
+                self.parameters["bevfusion_config"],
+                ckpt=self.parameters["bevfusion_ckpt"],
+                calibrated_sensor_cfg=self.parameters["calibrated_sensor_cfg"])
+
             # for bbox image publish
             self.n_rgb_cams = 0
             self.rgb_cams = {}
             self.boxes_lidar_publishers = {}
+            self.boxes_lidar_publishers_pred = {}
             
             # lidar overlay RGB
             self.lidar = {}
@@ -351,6 +360,7 @@ class CarlaRosBridge(CompatibleNode):
             parent = actor.parent
             if parent not in self.boxes_lidar_publishers.keys():
                 self.boxes_lidar_publishers[parent] = {}
+                self.boxes_lidar_publishers_pred[parent] = {}
                 
             if parent not in self.rgb_cams.keys():
                 self.rgb_cams[parent] = {}
@@ -360,16 +370,21 @@ class CarlaRosBridge(CompatibleNode):
                     CompressedImage, 
                     actor.get_topic_prefix() + '/' + 'bboxes_lidar',
                     qos_profile=10)
+                if 'rgb_view' not in actor.get_topic_prefix():
+                    self.boxes_lidar_publishers_pred[parent][id_] = self.new_publisher(
+                        CompressedImage, 
+                        actor.get_topic_prefix() + '/' + 'bboxes_lidar_pred',
+                        qos_profile=10)
                 self.rgb_cams[parent][id_] = actor
                 self.n_rgb_cams += 1
-        
+
         # Fetch lidar sensors 
         for _, actor in self.actor_factory.actors.items():
             if not isinstance(actor, Lidar): continue
             parent = actor.parent
             if parent not in self.lidar.keys():
                 self.lidar[parent] = actor
-        
+
         # Initialize lidar to camera 
         if self.lidar_to_camera is None:
             self.lidar_to_camera = LidarToRGB()
@@ -381,13 +396,16 @@ class CarlaRosBridge(CompatibleNode):
             len(self.lidar.keys()) != len(self.carla_world.get_actors().filter('sensor.lidar.ray_cast')) or \
             self.lidar_to_camera is None:
             self.get_rgb_cams_and_publishers()
-            if len(self.rgb_cams.keys()) == 0: return
+            if self.n_rgb_cams != len(self.carla_world.get_actors().filter('sensor.camera.rgb')): return
 
         if self.lidar_to_camera is None:
             self.logwarn("Lidar overlay.. couldnt setup lidar_to_rgb.")
 
         vehicles = self.carla_world.get_actors().filter('vehicle.*')
+        walkers = self.carla_world.get_actors().filter('walker.*')
+
         for parent, rgb_cams in self.rgb_cams.items():
+            # if parent is None: return
             # check if lidar exists for the same parent
             curr_lidar = None
             if parent in self.lidar:
@@ -395,67 +413,53 @@ class CarlaRosBridge(CompatibleNode):
             else:
                 self.logwarn(f"lidar is None for {parent}")
 
+            # bevfusion inference
+            # prepare data
+            images = {}
+            frame = None
             for id_, rgb_cam in rgb_cams.items():
-                bounding_boxes = ClientSideBoundingBoxes.get_bounding_boxes(vehicles, rgb_cam.carla_actor)
-                img = rgb_cam.get_image()
                 frame = rgb_cam.get_frame()
-                if img is None: continue
-                # rgb to bgr for drawing bboxes and lidar points
-                img = np.ascontiguousarray(img[:, :, ::-1])
-
-                # draw bounding boxes
-                for bbox in bounding_boxes:
-                    points = [(int(bbox[i, 0]), int(bbox[i, 1])) for i in range(8)]
-                    # base
-                    cv2.line(img, points[0], points[1], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[0], points[1], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[1], points[2], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[2], points[3], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[3], points[0], CarlaRosBridge.BB_COLOR, thickness=2)
-                    # top
-                    cv2.line(img, points[4], points[5], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[5], points[6], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[6], points[7], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[7], points[4], CarlaRosBridge.BB_COLOR, thickness=2)
-                    # base-top
-                    cv2.line(img, points[0], points[4], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[1], points[5], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[2], points[6], CarlaRosBridge.BB_COLOR, thickness=2)
-                    cv2.line(img, points[3], points[7], CarlaRosBridge.BB_COLOR, thickness=2)
-
-                # lidar points
-                lidar_data = None
-                if curr_lidar is not None:
-                    lidar_data = curr_lidar.get_lidar_data()
-                    
-                if self.lidar_to_camera is not None:
-                    if lidar_data is not None:
-                        if lidar_data.frame == frame:
-                            # draw
-                            image_w = float(rgb_cam.carla_actor.attributes.get("image_size_x"))
-                            image_h = float(rgb_cam.carla_actor.attributes.get("image_size_y"))
-                            img = self.lidar_to_camera.lidar_overlay(curr_lidar, lidar_data, img, rgb_cam, image_w, image_h)
-                        else:
-                            self.logwarn(f"Lidar overlay.. RGB {rgb_cam.get_topic_prefix()} and lidar not in sync.")
-                    else:
-                        self.logwarn("Lidar overlay.. lidar data is None.")
-                else:
-                    self.logwarn("Lidar Overlay.. couldnt setup lidar_to_camera.")
-                
-                # bgr to rgb
-                img = img[:, :, ::-1]
-
-                # get header msg 
-                header = rgb_cam.get_msg_header()
-
-                # publish bboxes
-                img_msg_bboxes_lidar = Camera.cv_bridge.cv2_to_compressed_imgmsg(img)
-                img_msg_bboxes_lidar.header = header
                 try:
-                    self.boxes_lidar_publishers[parent][id_].publish(img_msg_bboxes_lidar)
-                except Exception as e:
-                    self.logwarn(f"Publish bboxes with lidar exception {e}")
-   
+                    images[rgb_cam.get_topic_prefix().split('/')[-1]] = cv2.cvtColor(rgb_cam.get_image(), cv2.COLOR_BGR2RGB)
+                except:
+                    return
+            ego2global_location = parent.carla_actor.get_transform().location
+            ego2global_translation = [ego2global_location.x, -ego2global_location.y, ego2global_location.z]
+            ego2global_translation[-1] = 0.
+            ego2global_rotation = carla_rotation_to_quaternion(parent.carla_actor.get_transform().rotation)
+
+            if curr_lidar is not None:
+                lidar_data, lidar_frame = curr_lidar.get_lidar_world_with_ring_index()
+                if lidar_frame != frame: 
+                    self.logwarn(
+                        f"Bevfusion.. RGB {rgb_cam.get_topic_prefix().split('/')[-1]} and lidar not in sync.")
+                    continue
+                self.loginfo((ego2global_translation, ego2global_rotation))
+                output_images = self.bevfusion([images, lidar_data, ego2global_translation, ego2global_rotation])
+                if output_images is not None:
+                    for id_, rgb_cam in rgb_cams.items():
+                        header = rgb_cam.get_msg_header()
+                        img = output_images[rgb_cam.get_topic_prefix().split('/')[-1]]
+                        # publish bboxes
+                        img_msg_bboxes_lidar = Camera.cv_bridge.cv2_to_compressed_imgmsg(img)
+                        img_msg_bboxes_lidar.header = header
+                        try:
+                            self.boxes_lidar_publishers_pred[parent][id_].publish(img_msg_bboxes_lidar)
+                        except Exception as e:
+                            self.logwarn(f"Publish bboxes with lidar exception {e}")
+
+                        # publish original image
+                        img = images[rgb_cam.get_topic_prefix().split('/')[-1]]
+                        img = img[:, :, ::-1]
+
+                        # publish bboxes
+                        img_msg_bboxes_lidar = Camera.cv_bridge.cv2_to_compressed_imgmsg(img)
+                        img_msg_bboxes_lidar.header = header
+                        try:
+                            self.boxes_lidar_publishers[parent][id_].publish(img_msg_bboxes_lidar)
+                        except Exception as e:
+                            self.logwarn(f"Publish bboxes with lidar exception {e}")
+
     def _synchronous_mode_update(self):
         """
         execution loop for synchronous mode
@@ -614,13 +618,16 @@ def main(args=None):
     parameters['synchronous_mode'] = carla_bridge.get_param('synchronous_mode', True)
     parameters['synchronous_mode_wait_for_vehicle_control_command'] = carla_bridge.get_param(
         'synchronous_mode_wait_for_vehicle_control_command', False)
-    parameters['fixed_delta_seconds'] = carla_bridge.get_param('fixed_delta_seconds',
-                                                               0.05)
+    parameters['fixed_delta_seconds'] = carla_bridge.get_param('fixed_delta_seconds', 0.05)
     parameters['register_all_sensors'] = carla_bridge.get_param('register_all_sensors', True)
     parameters['town'] = carla_bridge.get_param('town', 'Town01')
     role_name = carla_bridge.get_param('ego_vehicle_role_name',
                                        ["hero", "ego_vehicle", "hero1", "hero2", "hero3"])
     parameters["ego_vehicle"] = {"role_name": role_name}
+    
+    parameters["bevfusion_ckpt"] = carla_bridge.get_param('bevfusion_ckpt', None)
+    parameters["bevfusion_config"] = carla_bridge.get_param('bevfusion_config', None)
+    parameters["calibrated_sensor_cfg"] = carla_bridge.get_param('calibrated_sensor_cfg', None)
 
     carla_bridge.loginfo("Trying to connect to {host}:{port}".format(
         host=parameters['host'], port=parameters['port']))
