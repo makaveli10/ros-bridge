@@ -1,7 +1,6 @@
-# FROM nvcr.io/nvidia/tensorrt:22.01-py3
-FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu20.04
+FROM nvidia/cuda:11.2.0-cudnn8-devel-ubuntu20.04
 ARG ROS_DISTRO=noetic
-ARG CUDA_VER=cu111
+ARG CUDA_VER=cu112
 
 # setup timezone
 RUN echo 'Etc/UTC' > /etc/timezone && \
@@ -28,10 +27,11 @@ COPY install_dependencies.sh /opt/carla-ros-bridge/
 
 RUN /bin/bash -c 'source /opt/ros/$ROS_DISTRO/setup.bash; \
                  rosdep update && rosdep install --from-paths src --ignore-src -r'
-RUN /bin/bash -c 'source /opt/ros/$ROS_DISTRO/setup.bash; \
-                  bash /opt/carla-ros-bridge/install_dependencies.sh;'
 
 COPY . /opt/carla-ros-bridge/src
+
+RUN /bin/bash -c 'source /opt/ros/$ROS_DISTRO/setup.bash; \
+                  bash /opt/carla-ros-bridge/install_dependencies.sh;'
 
 RUN /bin/bash -c 'source /opt/ros/$ROS_DISTRO/setup.bash ; \
                   if [ "$ROS_DISTRO" == "foxy" ]; then colcon build; else catkin_make install; fi'
@@ -45,10 +45,14 @@ RUN /bin/bash -c 'if [ "$ROS_DISTRO" == "noetic" ]; then patch /opt/ros/noetic/l
 RUN /bin/bash -c 'gdown --fuzzy https://drive.google.com/file/d/1LTlQKbA5Qrkv53P-k_c3UP0xrJVIcn-1/view?usp=sharing \
                  -O /opt/carla-ros-bridge/src/carla_ros_bridge/config/'
 
+WORKDIR /opt/carla-ros-bridge/
 
 COPY ./config/default /etc/nginx/sites-enabled
 
-# WORKDIR /studio
+# COPY ./docker/build_mmdet3d.sh /tmp/  
+
+# RUN chmod u+x /tmp/build_mmdet3d.sh && /tmp/build_mmdet3d.sh
+
 
 COPY start-ros-bridge.sh wait-for-carla.py /
 ENTRYPOINT ["/start-ros-bridge.sh"]

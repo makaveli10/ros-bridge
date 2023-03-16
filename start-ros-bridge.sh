@@ -1,9 +1,10 @@
 #!/bin/bash
 set -e
 
-# install bevfusion
+# setup mmdet3d bevfusion
 cd /opt/carla-ros-bridge/src/carla_ros_bridge/src/bevfusion
-python3 setup.py develop
+rm -rf build/ mmdet3d.egg-info/
+python setup.py develop
 
 # setup ros environment
 source "/opt/carla-ros-bridge/devel/setup.bash"

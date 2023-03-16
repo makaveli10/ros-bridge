@@ -23,4 +23,3 @@ gdown
 numba
 nuscenes-devkit
 tqdm
-mpi4py
