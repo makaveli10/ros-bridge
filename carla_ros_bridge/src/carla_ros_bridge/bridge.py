@@ -448,11 +448,17 @@ class CarlaRosBridge(CompatibleNode):
                         except Exception as e:
                             self.logwarn(f"Publish bboxes with lidar exception {e}")
 
-                        # publish original image
+                        # publish original imagewith lidar overlay
                         img = images[rgb_cam.get_topic_prefix().split('/')[-1]]
                         img = img[:, :, ::-1]
 
-                        # publish bboxes
+                        # draw lidar points
+                        image_w = float(rgb_cam.carla_actor.attributes.get("image_size_x"))
+                        image_h = float(rgb_cam.carla_actor.attributes.get("image_size_y"))
+                        img = self.lidar_to_camera.lidar_overlay(
+                            curr_lidar, curr_lidar.get_lidar_data(), img, rgb_cam, image_w, image_h)
+
+                        # publish bboxes with lidar overlay
                         img_msg_bboxes_lidar = Camera.cv_bridge.cv2_to_compressed_imgmsg(img)
                         img_msg_bboxes_lidar.header = header
                         try:

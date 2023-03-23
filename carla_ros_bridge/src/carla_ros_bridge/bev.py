@@ -198,7 +198,6 @@ def build_data(info, use_camera=True):
             camera2ego[:3, :3] = Quaternion(
                 camera_info["sensor2ego_rotation"]
             ).rotation_matrix
-            # print(camera_info["sensor2ego_rotation"])
             camera2ego[:3, 3] = camera_info["sensor2ego_translation"][0]
             data["camera2ego"].append(camera2ego)
             
@@ -225,7 +224,6 @@ def prepare_sample(results, pipeline, box_mode_3d, box_type_3d):
     example = pipeline(results)
     sample = {}
     for k, v in example.items():
-        print(k, len(v))
         if k == 'points':
             sample[k] = [torch.FloatTensor(example[k].data).cuda()]
         else:
@@ -279,7 +277,7 @@ class BevFusion:
         self.model.cuda()
         self.model.eval()
     
-    def __call__(self, data, bbox_score=0.2, out_dir='./viz_infer'):
+    def __call__(self, data, bbox_score=0.35, out_dir='./viz_infer'):
         images, lidar_path, ego2global_translation, ego2global_rotation = data
         info = get_data(
             images, lidar_path, self.all_cam_intrinsics, self.lidar2ego_translation, self.lidar2ego_rotation, \
@@ -297,7 +295,6 @@ class BevFusion:
         labels = outputs[0]["labels_3d"].numpy()
 
         if bbox_score is not None:
-            print("filtering bboxes")
             indices = scores >= bbox_score
             bboxes = bboxes[indices]
             scores = scores[indices]
@@ -313,7 +310,6 @@ class BevFusion:
             return None
         if "img" in sample:
             for k, img in imgs.items():
-                print(k)
                 image = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
                 cam_img = visualize_camera(
                     image,
